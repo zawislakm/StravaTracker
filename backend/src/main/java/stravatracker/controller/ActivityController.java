@@ -2,7 +2,7 @@ package stravatracker.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import stravatracker.Service.ActivityService;
+import stravatracker.service.ActivityService;
 import stravatracker.model.Activity;
 import stravatracker.model.Athlete;
 import stravatracker.requestsmodels.ActivitySumUpRequest;

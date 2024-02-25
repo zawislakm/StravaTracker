@@ -37,12 +37,6 @@ public class ActivitySumUpResponse {
 
     }
 
-    // TODO, change to Units?
-    public void changeUnitsMtoKm() {
-        this.totalDistance /= 1000;
-        this.averageLength /= 1000;
-        this.longestActivity /= 1000;
-    }
 
     public Float getTotalDistance() {
         return totalDistance;

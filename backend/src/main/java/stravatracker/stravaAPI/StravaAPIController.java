@@ -1,4 +1,4 @@
-package stravatracker.StravaAPI;
+package stravatracker.stravaAPI;
 
 
 import com.fasterxml.jackson.databind.JsonNode;

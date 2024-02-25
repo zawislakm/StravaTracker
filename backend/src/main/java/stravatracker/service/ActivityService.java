@@ -1,4 +1,4 @@
-package stravatracker.Service;
+package stravatracker.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +69,7 @@ public class ActivityService {
     }
 
 
-    // TODO: refactor this method
-    // for sure there is better way to do this
+    // TODO refactor this method
     public List<Activity> getActivities(Athlete athlete, SportType sportType, DateRange dateRange) {
         if (athlete != null && sportType != null && dateRange != null) {
             return activityRepository.findByAthleteAndSportTypeAndActivityDateBetween(athlete, sportType, dateRange.getStartDate(), dateRange.getEndDate());

@@ -4,7 +4,7 @@ The Strava Tracker application is designed to track activities of a specific Str
 
 ## Backend
 
-The backend is a Java Spring Boot application that fetches data from the Strava API about athletes and activities. It stores the data in a PostgreSQL database and provides endpoints for the frontend.
+The backend is a Java Spring Boot application that fetches data from the Strava API about athletes and activities. It stores the data in a PostgreSQL database and provides secured endpoints for the frontend.
 
 ## Frontend (under development)
 

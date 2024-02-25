@@ -1,4 +1,4 @@
-package stravatracker.StravaAPI;
+package stravatracker.stravaAPI;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +65,6 @@ public class WebClientConfiguration {
         JsonNode responseBody = responseSpec.bodyToMono(JsonNode.class).block();
 
         if (responseBody != null) {
-            System.out.println("Access token: " + responseBody.get("access_token").asText());
             return responseBody.get("access_token").asText();
         } else {
             throw new RuntimeException("Error obtaining access token");

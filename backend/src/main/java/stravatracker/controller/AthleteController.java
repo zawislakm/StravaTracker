@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import stravatracker.Service.AthleteService;
+import stravatracker.service.AthleteService;
 import stravatracker.model.Athlete;
 
 import java.util.List;

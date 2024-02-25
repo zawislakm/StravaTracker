@@ -1,4 +1,4 @@
-package stravatracker.Service;
+package stravatracker.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;

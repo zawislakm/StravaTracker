@@ -1,4 +1,4 @@
-package stravatracker.StravaAPI;
+package stravatracker.stravaAPI;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,9 +8,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import stravatracker.Service.ActivityService;
-import stravatracker.Service.AthleteService;
-import stravatracker.Service.SportTypeService;
+import stravatracker.service.ActivityService;
+import stravatracker.service.AthleteService;
+import stravatracker.service.SportTypeService;
 import stravatracker.model.Athlete;
 import stravatracker.model.SportType;
 
@@ -37,7 +37,7 @@ public class StravaAPIService {
     }
 
 
-//    @Scheduled(fixedDelay = 60 * 60 * 1000) // once per hour
+    @Scheduled(fixedDelay = 60 * 60 * 1000) // once per hour
     public void processClubActivities() {
         JsonNode newActivities = this.getClubActivities();
         if (newActivities == null) return;
@@ -57,7 +57,7 @@ public class StravaAPIService {
     }
 
 
-//    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // once per day
+    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // once per day
     public void processClubMembers() {
         JsonNode clubMembers = this.getClubMembers();
         if (clubMembers == null) return;
