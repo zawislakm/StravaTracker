@@ -1,0 +1,15 @@
+
+
+
+backend/build
+backend/.idea
+backend/.gradle
+backend/src/main/resources/application.properties
+backend/.gitignore
+backend/HELP.md
+
+
+frontend/node_modules
+frontend/.idea
+frontend/.gitignore
+
