@@ -1,14 +1,19 @@
 package stravatracker.requestsmodels;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import stravatracker.model.SportType;
 
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class ActivitySumUpRequest {
     private DateRange dateRange;
     private SportType sportType;
-
-
-    public ActivitySumUpRequest() {
-    }
 
 
     public ActivitySumUpRequest(DateRange dateRange) {
@@ -19,32 +24,5 @@ public class ActivitySumUpRequest {
         this.sportType = sportType;
     }
 
-    public ActivitySumUpRequest(DateRange dateRange, SportType sportType) {
-        this.dateRange = dateRange;
-        this.sportType = sportType;
-    }
 
-    public DateRange getDateRange() {
-        return dateRange;
-    }
-
-    public void setDateRange(DateRange dateRange) {
-        this.dateRange = dateRange;
-    }
-
-    public SportType getSportType() {
-        return sportType;
-    }
-
-    public void setSportType(SportType sportType) {
-        this.sportType = sportType;
-    }
-
-    @Override
-    public String toString() {
-        return "ActivitySumUpRequest{" +
-                "dateRange=" + dateRange +
-                ", sportType=" + sportType +
-                '}';
-    }
 }

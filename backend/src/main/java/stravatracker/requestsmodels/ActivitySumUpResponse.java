@@ -1,9 +1,17 @@
 package stravatracker.requestsmodels;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import stravatracker.model.Activity;
 
 import java.util.List;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class ActivitySumUpResponse {
 
 
@@ -15,9 +23,6 @@ public class ActivitySumUpResponse {
     private Float totalElevationGain = 0f;
     private int totalTrainingsAmount = 0;
 
-
-    public ActivitySumUpResponse() {
-    }
 
     public ActivitySumUpResponse(List<Activity> activities) {
         this.totalTrainingsAmount = activities.size();
@@ -38,59 +43,4 @@ public class ActivitySumUpResponse {
     }
 
 
-    public Float getTotalDistance() {
-        return totalDistance;
-    }
-
-    public void setTotalDistance(Float totalDistance) {
-        this.totalDistance = totalDistance;
-    }
-
-    public Float getAverageTime() {
-        return averageTime;
-    }
-
-    public void setAverageTime(Float averageTime) {
-        this.averageTime = averageTime;
-    }
-
-    public Float getAverageSpeed() {
-        return averageSpeed;
-    }
-
-    public void setAverageSpeed(Float averageSpeed) {
-        this.averageSpeed = averageSpeed;
-    }
-
-    public Float getAverageLength() {
-        return averageLength;
-    }
-
-    public void setAverageLength(Float averageLength) {
-        this.averageLength = averageLength;
-    }
-
-    public Float getLongestActivity() {
-        return longestActivity;
-    }
-
-    public void setLongestActivity(Float longestActivity) {
-        this.longestActivity = longestActivity;
-    }
-
-    public Float getTotalElevationGain() {
-        return totalElevationGain;
-    }
-
-    public void setTotalElevationGain(Float totalElevationGain) {
-        this.totalElevationGain = totalElevationGain;
-    }
-
-    public int getTotalTrainingsAmount() {
-        return totalTrainingsAmount;
-    }
-
-    public void setTotalTrainingsAmount(int totalTrainingsAmount) {
-        this.totalTrainingsAmount = totalTrainingsAmount;
-    }
 }

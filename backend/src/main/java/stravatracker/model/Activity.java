@@ -3,12 +3,14 @@ package stravatracker.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDate;
 
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 @Entity(name = "activities")
 @ToString(exclude = {"id", "athlete", "sportType"})
 @EqualsAndHashCode(exclude = {"id", "athlete", "sportType"})
@@ -23,15 +25,15 @@ public class Activity {
 
     @ManyToOne
     @JoinColumn(name = "athlete_id", nullable = false)
-//    @JsonBackReference
     private Athlete athlete;
+
     @ManyToOne
     @JoinColumn(name = "sport_type_id", nullable = false)
-//    @JsonBackReference
     private SportType sportType;
 
     @Column(name = "distance", nullable = false)
     private Float distance;
+
     @Column(name = "moving_time", nullable = false)
     private Float movingTime;
 
@@ -41,10 +43,6 @@ public class Activity {
     @Column(name = "activity_date", nullable = false, columnDefinition = "DATE")
     private LocalDate activityDate;
 
-    public Activity() {
-
-    }
-
     public Activity(Athlete athlete, SportType sportType, Float distance, Float movingTime, Float elevationGain, LocalDate activityDate) {
         this.athlete = athlete;
         this.sportType = sportType;
@@ -53,17 +51,6 @@ public class Activity {
         this.totalElevationGain = elevationGain;
         this.activityDate = activityDate;
     }
-
-    public Activity(Long id, Athlete athlete, SportType sportType, Float distance, Float movingTime, Float elevationGain, LocalDate activityDate) {
-        this.id = id;
-        this.athlete = athlete;
-        this.sportType = sportType;
-        this.distance = distance;
-        this.movingTime = movingTime;
-        this.totalElevationGain = elevationGain;
-        this.activityDate = activityDate;
-    }
-
 
     public Activity(SportType sportType, Athlete athlete) {
         this.sportType = sportType;
@@ -82,62 +69,16 @@ public class Activity {
         this.activityDate = LocalDate.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Athlete getAthlete() {
-        return athlete;
-    }
-
-    public void setAthlete(Athlete athlete) {
-        this.athlete = athlete;
-    }
-
-    public SportType getSportType() {
-        return sportType;
-    }
-
-    public void setSportType(SportType sportType) {
-        this.sportType = sportType;
-    }
-
     public Float getDistance() {
-        if (distance == null) return 0f;
-        return distance;
-    }
-
-    public void setDistance(Float distance) {
-        this.distance = distance;
+        return (distance == null) ? 0f : this.distance;
     }
 
     public Float getMovingTime() {
-        if (movingTime == null) return 0f;
-        return movingTime;
-    }
-
-    public void setMovingTime(Float movingTime) {
-        this.movingTime = movingTime;
+        return (movingTime == null) ? 0f : this.movingTime;
     }
 
     public Float getTotalElevationGain() {
-        if (totalElevationGain == null) return 0f;
-        return totalElevationGain;
+        return (totalElevationGain == null) ? 0f : this.totalElevationGain;
     }
 
-    public void setTotalElevationGain(Float totalElevationGain) {
-        this.totalElevationGain = totalElevationGain;
-    }
-
-    public LocalDate getActivityDate() {
-        return activityDate;
-    }
-
-    public void setActivityDate(LocalDate activityDate) {
-        this.activityDate = activityDate;
-    }
 }

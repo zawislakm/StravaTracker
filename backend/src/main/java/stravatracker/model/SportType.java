@@ -1,17 +1,16 @@
 package stravatracker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Entity(name = "sport_types")
 @Table(name = "sport_types", uniqueConstraints = {
         @UniqueConstraint(name = "sport_type_unique", columnNames = {"type", "sport_type"})
@@ -28,7 +27,6 @@ public class SportType {
     @JsonIgnore
     private Long id;
 
-
     @Column(name = "type", columnDefinition = "TEXT", nullable = false)
     private String type;
 
@@ -36,50 +34,12 @@ public class SportType {
     private String sportType;
 
     @OneToMany(mappedBy = "sportType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    @JsonManagedReference
     @JsonIgnore
     private final List<Activity> activities = new ArrayList<>();
-
-    public SportType() {
-
-    }
 
     public SportType(String type, String sportType) {
         this.type = type;
         this.sportType = sportType;
     }
 
-    public SportType(Long id, String type, String sportType) {
-        this.id = id;
-        this.type = type;
-        this.sportType = sportType;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getSportType() {
-        return sportType;
-    }
-
-    public void setSportType(String sportType) {
-        this.sportType = sportType;
-    }
-
-    public List<Activity> getActivities() {
-        return activities;
-    }
 }

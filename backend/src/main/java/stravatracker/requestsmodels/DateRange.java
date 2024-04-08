@@ -1,23 +1,25 @@
 package stravatracker.requestsmodels;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class DateRange {
 
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public DateRange() {
-    }
 
     public DateRange(String startDate, String endDate) {
         this.setStartDate(startDate);
         this.setEndDate(endDate);
-    }
-
-    public DateRange(LocalDate startDate, LocalDate endDate) {
-        this.startDate = startDate;
-        this.endDate = endDate;
     }
 
     public void setStartDate(String startDate) {
@@ -38,17 +40,11 @@ public class DateRange {
     }
 
     public LocalDate getStartDate() {
-        if (this.startDate == null) {
-            return LocalDate.of(1970, 1, 1);
-        }
-        return this.startDate;
+        return (this.startDate == null) ? LocalDate.of(1970, 1, 1) : this.startDate;
     }
 
     public LocalDate getEndDate() {
-        if (this.endDate == null) {
-            return LocalDate.now().plusYears(100);
-        }
-        return this.endDate;
+        return (this.endDate == null) ? LocalDate.now().plusYears(100) : this.endDate;
     }
 }
 
