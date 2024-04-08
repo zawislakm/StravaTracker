@@ -35,14 +35,6 @@ public class AthleteService {
 
         Athlete existingAthlete = athleteRepository.findByFirstNameAndLastName(firstname, lastname);
 
-        if (existingAthlete != null) {
-            return existingAthlete;
-        } else {
-            Athlete newAthlete = new Athlete();
-            newAthlete.setFirstName(firstname);
-            newAthlete.setLastName(lastname);
-
-            return athleteRepository.save(newAthlete);
-        }
+        return (existingAthlete != null) ? existingAthlete : athleteRepository.save(new Athlete(firstname, lastname));
     }
 }

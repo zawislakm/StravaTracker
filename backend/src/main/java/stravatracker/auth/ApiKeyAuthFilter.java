@@ -27,7 +27,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String requestApiKey = request.getHeader("X-API-KEY");
         String requestApiSecret = request.getHeader("X-API-SECRET");
         if (apiKey.equals(requestApiKey) && apiSecret.equals(requestApiSecret)) {
-            System.out.println("Authorized");
             filterChain.doFilter(request, response);
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());

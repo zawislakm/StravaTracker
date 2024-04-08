@@ -8,7 +8,9 @@ import stravatracker.model.SportType;
 import stravatracker.repository.SportTypeRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SportTypeService {
@@ -29,24 +31,17 @@ public class SportTypeService {
     }
 
 
-    public SportType getSportType(Long id) {
-        return sportTypeRepository.findById(id).orElse(null);
-    }
-
-
     public List<String> getSportTypeTypes() {
-
-
-        List<String> types = new ArrayList<>();
+        Set<String> types = new HashSet<>();
 
         for (SportType sportType : sportTypeRepository.findAll()) {
             types.add(sportType.getType());
         }
 
-        return types;
+        return new ArrayList<>(types);
     }
 
-
+    //TODO refactor this method
     public SportType getSportType(SportType sportType) {
 
         if (sportType == null) {
@@ -61,9 +56,6 @@ public class SportTypeService {
             return sportTypeRepository.findByTypeAndSportType(sportType.getType(), sportType.getSportType());
         }
 
-        if (sportType.getType() != null) {
-            return sportTypeRepository.findByType(sportType.getType());
-        }
 
         if (sportType.getSportType() != null) {
             return sportTypeRepository.findBySportType(sportType.getSportType());
@@ -72,13 +64,6 @@ public class SportTypeService {
         return null;
     }
 
-    public SportType getSportType(String type) {
-        return sportTypeRepository.findByType(type);
-    }
-
-    public SportType getSportType(String type, String sportType) {
-        return sportTypeRepository.findByTypeAndSportType(type, sportType);
-    }
 
     @Transactional
     public SportType getOrCreateSportType(JsonNode jsonData) {
@@ -87,15 +72,7 @@ public class SportTypeService {
 
         SportType existingSportType = sportTypeRepository.findByTypeAndSportType(type, sport_type);
 
-        if (existingSportType != null) {
-            return existingSportType;
-        } else {
-            SportType newSportType = new SportType();
-            newSportType.setType(type);
-            newSportType.setSportType(sport_type);
-
-            return sportTypeRepository.save(newSportType);
-        }
+        return (existingSportType != null) ? existingSportType : sportTypeRepository.save(new SportType(type, sport_type));
     }
 
 }

@@ -22,7 +22,7 @@ import java.io.IOException;
 public class StravaAPIService {
 
     @Value("${strava.CLUB_ID}")
-    private int CLUB_ID = 1131273;
+    private int CLUB_ID;
     WebClient webClient;
     ActivityService activityService;
     AthleteService athleteService;
