@@ -17,14 +17,12 @@ import (
 
 var defaultTimeout = 5 * time.Minute
 
-var once sync.Once
 var dbClient *MongoDBClient
-var dbVariables *MongoDBVariables
-
-//TODO add logging
-//TODO better error handling
-//TODO add tests
-//TODO add docstrings
+var URI string
+var DbName string
+var athletesCollection = "athletes"
+var activitiesCollection = "activities"
+var variableSetUp bool = false
 
 type MongoDBClient struct {
 	client       *mongo.Client
@@ -34,54 +32,23 @@ type MongoDBClient struct {
 	quit         chan struct{}
 }
 
-type MongoDBVariables struct {
-	URI                  string
-	Database             string
-	AthletesCollection   string
-	ActivitiesCollection string
-}
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
-
-	dbVariables = &MongoDBVariables{
-		URI:                  os.Getenv("DB_URI"),
-		Database:             os.Getenv("DB_NAME"),
-		AthletesCollection:   os.Getenv("DB_ATHLETES_COLLECTION"),
-		ActivitiesCollection: os.Getenv("DB_ACTIVITIES_COLLECTION"),
-	}
-
-	dbClient = &MongoDBClient{
-		client:       nil,
-		lastActivity: time.Now(),
-		timeout:      defaultTimeout,
-		mu:           sync.Mutex{},
-		quit:         nil,
-	}
-
-	err := dbClient.getClientConnection(dbVariables.URI)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	once.Do(func() {
-		// TODO check if setting indexes is necessary
-		err := dbClient.setAthleteIndex()
-		if err != nil {
-			log.Fatal(err)
-		}
-		//err = dbClient.setActivityIndex()
-		//if err != nil {
-		//	log.Fatal(err)
-		//}
-	})
-
-	fmt.Println("Database package initialized")
-}
-
 func GetDbClient() *MongoDBClient {
+	log.Println("Getting database client")
+	if variableSetUp == false {
+		if URI == "" || DbName == "" {
+			if err := godotenv.Load(); err != nil {
+				log.Fatalf("Error loading .env file: %v", err)
+			}
+		}
+
+		if URI == "" {
+			URI = os.Getenv("DB_URI")
+		}
+		if DbName == "" {
+			DbName = os.Getenv("DB_NAME")
+		}
+		variableSetUp = true
+	}
 	if dbClient == nil {
 		dbClient = &MongoDBClient{
 			client:       nil,
@@ -91,11 +58,19 @@ func GetDbClient() *MongoDBClient {
 			quit:         nil,
 		}
 	}
+
+	defer func(dbClient *MongoDBClient) {
+		err := dbClient.Close()
+		if err != nil {
+			log.Fatalf("Error closing MongoDB connection: %v", err)
+		}
+	}(dbClient)
 	return dbClient
 }
 
 func (service *MongoDBClient) setAthleteIndex() error {
-	collection, err := service.getCollection(dbVariables.AthletesCollection)
+	log.Println("Setting athlete index")
+	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
 		return err
 	}
@@ -117,7 +92,8 @@ func (service *MongoDBClient) setAthleteIndex() error {
 }
 
 func (service *MongoDBClient) setActivityIndex() error {
-	collection, err := service.getCollection(dbVariables.ActivitiesCollection)
+	log.Println("Setting activity index")
+	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		return err
 	}
@@ -137,29 +113,30 @@ func (service *MongoDBClient) setActivityIndex() error {
 	return nil
 }
 
-// getClientConnection creates a new MongoDB client with an inactivity timeout
 func (service *MongoDBClient) getClientConnection(uri string) error {
-
+	// getClientConnection creates a new MongoDB client with an inactivity timeout
 	if service.isConnected() {
 		return nil
 	}
-
+	log.Println("Connecting to database: ", uri)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 
-	opts := options.Client().ApplyURI(dbVariables.URI).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return err
 	}
-
 	service.client = client
+	if !service.isConnected() {
+		return fmt.Errorf("Failed connecting to database")
+	}
+
 	service.quit = make(chan struct{})
 	go service.monitorInactivity()
-
 	return nil
 }
 
@@ -173,8 +150,9 @@ func (service *MongoDBClient) isConnected() bool {
 	return err == nil
 }
 
-// monitorInactivity monitors the client's activity and closes the connection after timeout
 func (service *MongoDBClient) monitorInactivity() {
+	// monitorInactivity monitors the client's activity and closes the connection after timeout
+	log.Println("Monitoring MongoDB connection for inactivity started.")
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
@@ -198,9 +176,10 @@ func (service *MongoDBClient) monitorInactivity() {
 	}
 }
 
-// getCollection gets a MongoDB collection and updates the last activity time
 func (service *MongoDBClient) getCollection(collection string) (*mongo.Collection, error) {
-	err := service.getClientConnection(dbVariables.URI)
+	// getCollection gets a MongoDB collection and updates the last activity time
+	log.Println("Getting collection: ", collection)
+	err := service.getClientConnection(URI)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +187,17 @@ func (service *MongoDBClient) getCollection(collection string) (*mongo.Collectio
 	defer service.mu.Unlock()
 
 	service.lastActivity = time.Now()
-	return service.client.Database(dbVariables.Database).Collection(collection), nil
+	return service.client.Database(DbName).Collection(collection), nil
+}
+
+func (service *MongoDBClient) Clear() error {
+	// function that drops all records from the database
+	log.Println("Clearing database")
+	err := service.client.Database(DbName).Drop(context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Close manually closes the MongoDB connection
@@ -216,6 +205,7 @@ func (service *MongoDBClient) Close() error {
 	if !service.isConnected() {
 		return nil
 	}
+	log.Println("Closing MongoDB connection")
 	if service.quit != nil {
 		close(service.quit)
 		service.quit = nil
