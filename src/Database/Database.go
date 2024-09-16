@@ -14,8 +14,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (service *MongoDBClient) insertAthlete(athlete *Models.StravaAthlete) error {
-	collection, err := service.getCollection(dbVariables.AthletesCollection)
+func (service *MongoDBClient) InsertAthlete(athlete *Models.StravaAthlete) error {
+	log.Println("Inserting athlete")
+	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,8 @@ func (service *MongoDBClient) insertAthlete(athlete *Models.StravaAthlete) error
 }
 
 func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) error {
-	collection, err := service.getCollection(dbVariables.AthletesCollection)
+	log.Println("Getting athlete index")
+	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
 		return err
 	}
@@ -50,7 +52,7 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) err
 	filter := bson.M{"firstname": athlete.Firstname, "lastname": athlete.Lastname}
 	err = collection.FindOne(context.Background(), filter).Decode(&athlete)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = service.insertAthlete(athlete)
+		err = service.InsertAthlete(athlete)
 		if err != nil {
 			return err
 		}
@@ -64,7 +66,8 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) err
 func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error) {
 	// official Strava API does not provide any ID for the activities,
 	// so to avoid duplicates of the same activity in the database we need to get the latest activity
-	collection, err := service.getCollection(dbVariables.ActivitiesCollection)
+	log.Println("Getting latest activity")
+	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +84,8 @@ func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error
 }
 
 func (service *MongoDBClient) InsertActivity(activity Models.StravaActivity) error {
-	collection, err := service.getCollection(dbVariables.ActivitiesCollection)
+	log.Println("Inserting activity")
+	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		return err
 	}
@@ -108,7 +112,8 @@ func (service *MongoDBClient) InsertActivity(activity Models.StravaActivity) err
 }
 
 func (service *MongoDBClient) getAthletes() []Models.StravaAthlete {
-	collection, err := service.getCollection(dbVariables.AthletesCollection)
+	log.Println("Getting all athletes")
+	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -127,7 +132,8 @@ func (service *MongoDBClient) getAthletes() []Models.StravaAthlete {
 }
 
 func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete) []Models.StravaActivity {
-	collection, err := service.getCollection(dbVariables.ActivitiesCollection)
+	log.Println("Getting all activities for athlete")
+	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -147,6 +153,7 @@ func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete
 }
 
 func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete) Models.AthleteData {
+	log.Println("Getting sum up of all activities for athlete")
 	activities := service.getAthleteActivities(athlete)
 
 	athleteData := Models.AthleteData{Name: athlete.Firstname + " " + athlete.Lastname}
@@ -176,6 +183,7 @@ func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete)
 }
 
 func (service *MongoDBClient) GetAthletesData() []Models.AthleteData {
+	log.Println("Getting sum up of all activities for all athletes")
 	athleteData := make([]Models.AthleteData, 0)
 	athletes := service.getAthletes()
 
