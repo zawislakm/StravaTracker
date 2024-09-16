@@ -3,7 +3,6 @@ package Database
 import (
 	"app/src/Models"
 	"github.com/stretchr/testify/suite"
-	"log"
 	"testing"
 )
 
@@ -128,7 +127,7 @@ func (suite *RepositorySuite) TestGetLatestActivity() {
 	suite.Run("when there is no activity", func() {
 		latestActivity, err := suite.testDatabase.DbService.GetLatestActivity()
 		suite.Nil(err)
-		log.Println(latestActivity)
+
 		suite.Equal(latestActivity.Name, "")
 		suite.Equal(latestActivity.Distance, 0.0)
 		suite.Equal(latestActivity.MovingTime, 0)
