@@ -3,13 +3,8 @@ module app
 
 go 1.22
 
-replace app/StravaAPI => ./src/StravaAPI
-
-replace app/Database => ./src/Database
-
 require (
 	github.com/a-h/templ v0.2.778
-	github.com/benweissmann/memongo v0.1.1
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.12.0
 	go.mongodb.org/mongo-driver v1.16.1

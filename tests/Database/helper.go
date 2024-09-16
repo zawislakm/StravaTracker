@@ -17,10 +17,12 @@ type TestDatabase struct {
 
 func SetupTestDatabase() *TestDatabase {
 	log.Println("setting up test database")
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*60)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
 	container, dbAddr, dbService, err := createMongoContainer(ctx)
 	if err != nil {
-		log.Fatal("failed to setup test", err)
+		log.Fatalf("failed to setup test: %v", err)
 	}
 
 	return &TestDatabase{
