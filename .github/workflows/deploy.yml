@@ -28,10 +28,13 @@ jobs:
         echo "DB_URI=${{ secrets.DB_URI }}" >> .env
         echo "DB_URI=${{ secrets.DB_NAME }}" >> .env
 
-    - name: Copy .env and project files to server
+    - name: Copy .env to server
       run: |
-        scp -r -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/strava/.env
-        scp -r -o StrictHostKeyChecking=no . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/strava
+        scp -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/strava/.env
+
+    - name: Copy project files to server
+      run: |
+        scp -r -o StrictHostKeyChecking=no * ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/strava
 
     - name: Deploy on server
       run: |
