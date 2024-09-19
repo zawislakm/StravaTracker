@@ -8,13 +8,14 @@ COPY go.mod go.sum main.go Makefile ./
 
 RUN go mod download
 RUN go install github.com/a-h/templ/cmd/templ@latest
-# List contents to debug build issues
 
 RUN make build-prod
 
 FROM ubuntu:latest
 
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl
 
 COPY --from=builder /app/tmp .
 
