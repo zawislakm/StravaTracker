@@ -25,8 +25,8 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 func SetupServer() {
 	serviceDb := Database.GetDbClient()
 	serviceApi := StravaAPI.GetStravaClient()
-
-	go GetActivities(serviceApi, serviceDb)
+	cache := newDataCache(serviceDb)
+	go GetActivities(serviceApi, serviceDb, cache)
 
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -37,7 +37,7 @@ func SetupServer() {
 
 	e.GET("/table/:sort", func(c echo.Context) error {
 		sortField := c.Param("sort")
-		athletesData := serviceDb.GetAthletesData()
+		athletesData := cache.GetActivities()
 
 		sort.Slice(athletesData, func(i, j int) bool {
 			valI := reflect.ValueOf(athletesData[i]).FieldByName(sortField)
