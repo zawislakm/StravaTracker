@@ -5,12 +5,19 @@ import (
 	"app/src/Models"
 	"app/src/StravaAPI"
 	"log"
+	"sync"
 	"time"
 )
 
+type DataCache struct {
+	Activities []Models.AthleteData
+	ReloadChan chan bool
+	mu         sync.Mutex
+}
+
 var apiCallTimeout = 10 * time.Minute
 
-func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.MongoDBClient) {
+func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.MongoDBClient, cache *DataCache) {
 	// fill this function to run each 5 minutes
 	// get the latest activities from the Strava API
 	log.Println("Go routine to get activities started")
@@ -30,6 +37,7 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 			if len(newActivities) > 0 {
 				log.Println("New activities found")
 				// TODO send a notification to frontend about new activities
+				cache.ReloadChan <- true
 			}
 		}
 
@@ -66,4 +74,33 @@ func processNewActivities(activities []Models.StravaActivity, dbService *Databas
 		}
 	}
 
+}
+
+func newDataCache(serviceDb *Database.MongoDBClient) *DataCache {
+	log.Println("Creating data cache")
+	cache := &DataCache{
+		Activities: serviceDb.GetAthletesData(),
+		ReloadChan: make(chan bool),
+	}
+	go cache.reloadData(serviceDb)
+	return cache
+}
+
+func (cache *DataCache) GetActivities() []Models.AthleteData {
+	log.Println("Getting activities from cache")
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	return cache.Activities
+}
+
+func (cache *DataCache) reloadData(serviceDb *Database.MongoDBClient) {
+	for {
+		select {
+		case <-cache.ReloadChan:
+			log.Println("Reloading cached athlete data")
+			cache.mu.Lock()
+			cache.Activities = serviceDb.GetAthletesData()
+			cache.mu.Unlock()
+		}
+	}
 }
