@@ -15,4 +15,4 @@ Data is displayed in the web application. To display the data, the application u
 templ to render HTML templates. Docker image of the application is hosted on Oracle Cloud VM.
 
 Website overview (frontend still under construction):
-[Strava Tracker](http://130.61.63.141:8080) 
+[Strava Tracker](http://130.61.63.141) 
