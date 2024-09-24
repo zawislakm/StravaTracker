@@ -1,6 +1,7 @@
 package Models
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -69,4 +70,14 @@ type AthleteData struct {
 	AverageTime     float64
 	AverageSpeed    float64
 	AverageLength   float64
+}
+
+func (athleteData *AthleteData) FormatDuration() string {
+	hours := int(athleteData.AverageTime) / 3600
+	minutes := (int(athleteData.AverageTime) % 3600) / 60
+	seconds := int(athleteData.AverageTime) % 60
+	if hours > 0 {
+		return fmt.Sprintf("%dh:%02dm:%02ds", hours, minutes, seconds)
+	}
+	return fmt.Sprintf("%02dm:%02ds", minutes, seconds)
 }
