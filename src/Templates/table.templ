@@ -6,35 +6,35 @@ import (
 )
 
 templ Table(athletesData []Models.AthleteData) {
-<div id="table-container">
-    <h1>Athletes Data</h1>
-    <table>
-        <thead>
-        <tr>
-            <th><button hx-get="/table/Name" hx-target="#table-container" hx-swap="outerHTML">Name</button></th>
-            <th><button hx-get="/table/Distance" hx-target="#table-container" hx-swap="outerHTML">Distance</button></th>
-            <th><button hx-get="/table/AverageTime" hx-target="#table-container" hx-swap="outerHTML">Average Time</button></th>
-            <th><button hx-get="/table/AverageSpeed" hx-target="#table-container" hx-swap="outerHTML">Average Speed</button></th>
-            <th><button hx-get="/table/AverageLength" hx-target="#table-container" hx-swap="outerHTML">Average Length</button></th>
-            <th><button hx-get="/table/LongestActivity" hx-target="#table-container" hx-swap="outerHTML">Longest Activity</button></th>
-            <th><button hx-get="/table/ElevationGain" hx-target="#table-container" hx-swap="outerHTML">Total Gain</button></th>
-            <th><button hx-get="/table/TotalActivities" hx-target="#table-container" hx-swap="outerHTML">Total Trainings</button></th>
-        </tr>
-        </thead>
-        <tbody id="data-table-body">
-            for _, athlete := range athletesData {
-                <tr>
-                    <td>{athlete.Name}</td>
-                    <td>{fmt.Sprintf("%.2f km", athlete.Distance)}</td>
-                    <td>{fmt.Sprintf("%.2f s", athlete.AverageTime)}</td>
-                    <td>{fmt.Sprintf("%.2f km/h", athlete.AverageSpeed)}</td>
-                    <td>{fmt.Sprintf("%.2f km", athlete.AverageLength)}</td>
-                    <td>{fmt.Sprintf("%.2f km", athlete.LongestActivity)}</td>
-                    <td>{fmt.Sprintf("%.2f m", athlete.ElevationGain)}</td>
-                    <td>{fmt.Sprintf("%d", athlete.TotalActivities)}</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <div id="table-container">
+        <h1>Athletes Data</h1>
+        <table>
+            <thead>
+            <tr>
+                <th><button hx-get="/table/Name" hx-target="#table-container" hx-swap="outerHTML">Name</button></th>
+                <th><button hx-get="/table/Distance" hx-target="#table-container" hx-swap="outerHTML">Distance</button></th>
+                <th><button hx-get="/table/AverageTime" hx-target="#table-container" hx-swap="outerHTML">Average Time</button></th>
+                <th><button hx-get="/table/AverageSpeed" hx-target="#table-container" hx-swap="outerHTML">Average Speed</button></th>
+                <th><button hx-get="/table/AverageLength" hx-target="#table-container" hx-swap="outerHTML">Average Length</button></th>
+                <th><button hx-get="/table/LongestActivity" hx-target="#table-container" hx-swap="outerHTML">Longest Activity</button></th>
+                <th><button hx-get="/table/ElevationGain" hx-target="#table-container" hx-swap="outerHTML">Total Gain</button></th>
+                <th><button hx-get="/table/TotalActivities" hx-target="#table-container" hx-swap="outerHTML">Total Trainings</button></th>
+            </tr>
+            </thead>
+            <tbody id="data-table-body">
+                for _, athlete := range athletesData {
+                    <tr>
+                        <td>{athlete.Name}</td>
+                        <td>{fmt.Sprintf("%.2f km", athlete.Distance)}</td>
+                        <td>{fmt.Sprintf("%s", athlete.FormatDuration())}</td>
+                        <td>{fmt.Sprintf("%.2f km/h", athlete.AverageSpeed)}</td>
+                        <td>{fmt.Sprintf("%.2f km", athlete.AverageLength)}</td>
+                        <td>{fmt.Sprintf("%.2f km", athlete.LongestActivity)}</td>
+                        <td>{fmt.Sprintf("%.2f m", athlete.ElevationGain)}</td>
+                        <td>{fmt.Sprintf("%d", athlete.TotalActivities)}</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
