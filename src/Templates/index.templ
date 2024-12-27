@@ -1,60 +1,34 @@
 package Templates
 
-templ Index() {
-    <html lang="en">
+import (
+    "fmt"
+)
+
+templ Index(tableLabels []string) {
+    <html lang="en" xmlns="">
     <head>
         <title>Athletes Data</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: #f4f4f4;
-            }
-            #table-container {
-                margin: 20px;
-                padding: 20px;
-                background-color: #fff;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                padding: 10px;
-                text-align: left;
-                border-bottom: 1px solid #ddd;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-            tr:hover {
-                background-color: #f1f1f1;
-            }
-            button {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                margin: 4px 2px;
-                cursor: pointer;
-                border-radius: 4px;
-            }
-            button:hover {
-                background-color: #45a049;
-            }
-        </style>
+        <script src="/static/scripts.js"></script>
+        <link rel="stylesheet" href="/static/styles.css">
     </head>
     <body>
-        <div id="table-container" hx-get="/table/Distance" hx-trigger="load" hx-swap="outerHTML">
+        <div id="table-container">
+            <h1>Athletes Data</h1>
+            <label>Year </label>
+               <div id="year-box" hx-get="/years" hx-trigger="load" hx-target="#year-box" hx-swap="outerHTML"></div>
+            <table>
+                <thead>
+                <tr>
+                    for _, label := range tableLabels {
+                        <th><button hx-get={fmt.Sprintf("/table?sort=%s", label)} hx-target="#data-table-body" hx-swap="outerHTML">{label}</button></th>
+                    }
+                </tr>
+                </thead>
+                <tbody id="data-table-body" hx-get="/table?sort=Distance" hx-trigger="load" hx-swap="outerHTML"></tbody>
+            </table>
         </div>
     </body>
     </html>

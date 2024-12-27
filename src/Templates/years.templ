@@ -1,0 +1,9 @@
+package Templates
+
+templ Years(years []string) {
+    <select name="year" hx-get="/table" hx-target="#data-table-body" hx-swap="outerHTML">
+        for _, year := range years {
+            <option value={year}>{year}</option>
+        }
+    </select>
+}

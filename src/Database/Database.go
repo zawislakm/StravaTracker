@@ -4,8 +4,10 @@ import (
 	"app/src/Models"
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"math"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -61,6 +63,34 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) err
 		return err
 	}
 	return nil
+}
+
+func (service *MongoDBClient) GetUniqueYears() ([]string, error) {
+	log.Println("Getting unique years")
+	collection, err := service.getCollection(activitiesCollection)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the distinct method to get unique date values
+	dates, err := collection.Distinct(context.Background(), "date", bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	uniqueYears := make(map[string]struct{})
+	for _, date := range dates {
+		// Extract the year part from the date string
+		year := strings.Split(date.(string), "-")[0]
+		uniqueYears[year] = struct{}{}
+	}
+
+	years := make([]string, 0, len(uniqueYears))
+	for year := range uniqueYears {
+		years = append(years, year)
+	}
+
+	return years, nil
 }
 
 func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error) {
@@ -131,14 +161,16 @@ func (service *MongoDBClient) getAthletes() []Models.StravaAthlete {
 	return athletes
 }
 
-func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete) []Models.StravaActivity {
+func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete, year string) []Models.StravaActivity {
 	log.Println("Getting all activities for athlete")
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	filter := bson.M{"userId": athlete.ID}
+	filter := bson.M{
+		"userId": athlete.ID,
+		"date":   bson.M{"$regex": fmt.Sprintf("^%s", year)},
+	}
 	cursor, err := collection.Find(context.Background(), filter)
 	if err != nil {
 		log.Fatal(err)
@@ -152,9 +184,9 @@ func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete
 	return activities
 }
 
-func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete) Models.AthleteData {
+func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete, year string) Models.AthleteData {
 	log.Println("Getting sum up of all activities for athlete")
-	activities := service.getAthleteActivities(athlete)
+	activities := service.getAthleteActivities(athlete, year)
 
 	athleteData := Models.AthleteData{Name: athlete.Firstname + " " + athlete.Lastname}
 
@@ -182,13 +214,19 @@ func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete)
 	return athleteData
 }
 
-func (service *MongoDBClient) GetAthletesData() []Models.AthleteData {
+func (service *MongoDBClient) GetAthletesData(year string) []Models.AthleteData {
 	log.Println("Getting sum up of all activities for all athletes")
+	if year == "" {
+		year = time.Now().Format("2006")
+	}
 	athleteData := make([]Models.AthleteData, 0)
 	athletes := service.getAthletes()
 
 	for _, athlete := range athletes {
-		athleteData = append(athleteData, service.getAthleteDataSumUp(&athlete))
+		athleteDataSumUp := service.getAthleteDataSumUp(&athlete, year)
+		if athleteDataSumUp.TotalActivities > 0 {
+			athleteData = append(athleteData, athleteDataSumUp)
+		}
 	}
 
 	return athleteData

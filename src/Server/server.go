@@ -2,13 +2,13 @@ package Server
 
 import (
 	"app/src/Database"
+	"app/src/Models"
 	"app/src/StravaAPI"
 	"app/src/Templates"
+	"fmt"
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"reflect"
-	"sort"
 )
 
 func Render(ctx echo.Context, statusCode int, t templ.Component) error {
@@ -29,37 +29,41 @@ func SetupServer() {
 	go GetActivities(serviceApi, serviceDb, cache)
 
 	e := echo.New()
+
+	e.Static("/static", "static") // Serve static files from the "static" directory
 	e.GET("/", func(c echo.Context) error {
 		//athletesData := serviceDb.GetAthletesData()
+		//athletesData := cache.GetActivities()
 		//return Render(c, http.StatusOK, Templates.Table(athletesData))
-		return Render(c, http.StatusOK, Templates.Index())
+		tableLabels := []string{"Name", "Distance", "AverageTime", "AverageSpeed", "AverageLength", "LongestActivity", "ElevationGain", "TotalActivities"}
+
+		return Render(c, http.StatusOK, Templates.Index(tableLabels))
 	})
 
-	e.GET("/table/:sort", func(c echo.Context) error {
-		sortField := c.Param("sort")
-		athletesData := cache.GetActivities()
+	e.GET("/table", func(c echo.Context) error {
+		yearFilter := c.QueryParam("year")
+		fmt.Printf("Year filter: %s\n", yearFilter)
+		if yearFilter == "" {
+			yearFilter = cache.Year
+		}
+		sortField := c.QueryParam("sort")
+		fmt.Println(yearFilter, sortField)
+		if sortField == "" {
+			sortField = "Distance"
+		}
 
-		sort.Slice(athletesData, func(i, j int) bool {
-			valI := reflect.ValueOf(athletesData[i]).FieldByName(sortField)
-			valJ := reflect.ValueOf(athletesData[j]).FieldByName(sortField)
-			if !valI.IsValid() || !valJ.IsValid() {
-				return false
-			}
-			switch valI.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				return valI.Int() > valJ.Int()
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				return valI.Uint() > valJ.Uint()
-			case reflect.Float32, reflect.Float64:
-				return valI.Float() > valJ.Float()
-			case reflect.String:
-				return valI.String() > valJ.String()
-			default:
-				return false
-			}
-		})
+		athletesData := cache.GetActivities(serviceDb, yearFilter)
+		Models.SortAthletesData(athletesData, sortField)
 
 		return Render(c, http.StatusOK, Templates.Table(athletesData))
+	})
+
+	e.GET("/years", func(c echo.Context) error {
+		years, err := serviceDb.GetUniqueYears()
+		if err != nil {
+			return err
+		}
+		return Render(c, http.StatusOK, Templates.Years(years))
 	})
 
 	// Start server
