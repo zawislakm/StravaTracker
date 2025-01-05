@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TODO add test for year query
+// TODO add test for unique yeas
 type RepositorySuite struct {
 	suite.Suite
 	testDatabase *TestDatabase
@@ -198,7 +200,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		SportType:          "Running",
 	}
 	suite.Run("when there are no athletes", func() {
-		athletesData := suite.testDatabase.DbService.GetAthletesData()
+		athletesData := suite.testDatabase.DbService.GetAthletesData("")
 		suite.Len(athletesData, 0)
 	})
 
@@ -215,7 +217,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		err = suite.testDatabase.DbService.InsertActivity(activity3)
 		suite.Nil(err)
 
-		athletesData := suite.testDatabase.DbService.GetAthletesData()
+		athletesData := suite.testDatabase.DbService.GetAthletesData("")
 		suite.Len(athletesData, 2)
 
 		// Validate athlete1 data

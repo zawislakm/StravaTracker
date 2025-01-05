@@ -97,3 +97,5 @@ fabric.properties
 tmp
 *_templ.go
 app
+
+run.sh

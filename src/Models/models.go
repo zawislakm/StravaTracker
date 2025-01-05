@@ -1,9 +1,7 @@
 package Models
 
 import (
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 type StravaOauthRequest struct {
@@ -20,10 +18,6 @@ type StravaOauthResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
-}
-
-func (s *StravaOauthResponse) IsExpired() bool {
-	return time.Now().Unix() > int64(s.ExpiresAt)
 }
 
 type StravaHeader struct {
@@ -56,10 +50,6 @@ type StravaActivity struct {
 	Date               string              `bson:"date"`
 }
 
-func (apiActivity *StravaActivity) CompareStravaData(dbActivity *StravaActivity) bool {
-	return apiActivity.Name == dbActivity.Name && apiActivity.Distance == dbActivity.Distance && apiActivity.MovingTime == dbActivity.MovingTime && apiActivity.TotalElevationGain == dbActivity.TotalElevationGain && apiActivity.Type == dbActivity.Type && apiActivity.SportType == dbActivity.SportType && apiActivity.WorkoutType == dbActivity.WorkoutType
-}
-
 type AthleteData struct {
 	Name            string
 	Distance        float64
@@ -70,14 +60,4 @@ type AthleteData struct {
 	AverageTime     float64
 	AverageSpeed    float64
 	AverageLength   float64
-}
-
-func (athleteData *AthleteData) FormatDuration() string {
-	hours := int(athleteData.AverageTime) / 3600
-	minutes := (int(athleteData.AverageTime) % 3600) / 60
-	seconds := int(athleteData.AverageTime) % 60
-	if hours > 0 {
-		return fmt.Sprintf("%dh:%02dm:%02ds", hours, minutes, seconds)
-	}
-	return fmt.Sprintf("%02dm:%02ds", minutes, seconds)
 }
