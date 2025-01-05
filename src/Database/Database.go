@@ -45,7 +45,7 @@ func (service *MongoDBClient) InsertAthlete(athlete *Models.StravaAthlete) error
 }
 
 func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) error {
-	log.Println("Getting athlete index")
+	log.Println(fmt.Sprintf("Getting athlete index: %s", athlete.ID.Hex()))
 	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error
 }
 
 func (service *MongoDBClient) InsertActivity(activity Models.StravaActivity) error {
-	log.Println("Inserting activity")
+	log.Println(fmt.Sprintf("Inserting activity: %s, for athlete %s", activity.Name, activity.ID.Hex()))
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (service *MongoDBClient) getAthletes() []Models.StravaAthlete {
 }
 
 func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete, year string) []Models.StravaActivity {
-	log.Println("Getting all activities for athlete")
+	log.Println(fmt.Sprintf("Getting all activities for athlete: %s", athlete.ID.Hex()))
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
 		log.Fatal(err)
@@ -170,6 +170,7 @@ func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete
 	filter := bson.M{
 		"userId": athlete.ID,
 		"date":   bson.M{"$regex": fmt.Sprintf("^%s", year)},
+		"type":   "Ride", // TODO investigate if there is a possibility to get other sport types from this club API
 	}
 	cursor, err := collection.Find(context.Background(), filter)
 	if err != nil {
@@ -185,7 +186,7 @@ func (service *MongoDBClient) getAthleteActivities(athlete *Models.StravaAthlete
 }
 
 func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete, year string) Models.AthleteData {
-	log.Println("Getting sum up of all activities for athlete")
+	log.Println(fmt.Sprintf("Getting sum up of all activities for athlete: %s", athlete.ID.Hex()))
 	activities := service.getAthleteActivities(athlete, year)
 
 	athleteData := Models.AthleteData{Name: athlete.Firstname + " " + athlete.Lastname}

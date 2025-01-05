@@ -30,7 +30,7 @@ func SetupServer() {
 
 	e := echo.New()
 
-	e.Static("/static", "static") // Serve static files from the "static" directory
+	e.Static("/static", "static")
 	e.GET("/", func(c echo.Context) error {
 		//athletesData := serviceDb.GetAthletesData()
 		//athletesData := cache.GetActivities()
@@ -51,7 +51,6 @@ func SetupServer() {
 		if sortField == "" {
 			sortField = "Distance"
 		}
-
 		athletesData := cache.GetActivities(serviceDb, yearFilter)
 		Models.SortAthletesData(athletesData, sortField)
 
@@ -59,6 +58,7 @@ func SetupServer() {
 	})
 
 	e.GET("/years", func(c echo.Context) error {
+		// TODO rebuild cache to store data years and add this for frontend
 		years, err := serviceDb.GetUniqueYears()
 		if err != nil {
 			return err

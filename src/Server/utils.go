@@ -17,12 +17,12 @@ type DataCache struct {
 	mu         sync.Mutex
 }
 
-var apiCallTimeout = 10 * time.Minute
+var apiCallTimeout = 5 * time.Minute
 
 func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.MongoDBClient, cache *DataCache) {
 	// fill this function to run each 5 minutes
 	// get the latest activities from the Strava API
-	log.Println("Go routine to get activities started")
+	log.Println("Goroutine to get activities started")
 	ticker := time.NewTicker(apiCallTimeout)
 
 	for {
@@ -32,7 +32,7 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 			log.Println("Calling for activities")
 			activities, err := apiService.StravaGetClubActivities()
 			if err != nil {
-				// log the error
+				log.Fatalf("Error getting activities from Strava API: %v", err)
 			}
 			newActivities := filterNewActivities(activities, dbService)
 			processNewActivities(newActivities, dbService)
@@ -40,6 +40,8 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 				log.Println("New activities found")
 				// TODO send a notification to frontend about new activities
 				cache.ReloadChan <- true // pass year of activities to reload, maybe reload is not needed
+			} else {
+				log.Println("No new activities found")
 			}
 		}
 
