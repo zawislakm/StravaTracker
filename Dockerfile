@@ -1,26 +1,39 @@
-FROM golang:1.22 AS builder
+FROM golang:1.22 AS go-base
+
+FROM go-base AS templ-builder
 
 WORKDIR /app
 
-# Copy the source code into the container
+COPY go.mod .
+
+RUN go install github.com/a-h/templ/cmd/templ@$(go list -m -f '{{ .Version }}' github.com/a-h/templ)
+
+COPY src/Templates /app/src/Templates
+
+RUN templ generate --path=/app/src/Templates
+
+FROM go-base AS build-stage
+
+WORKDIR /app
+
 COPY ./src /app/src
 COPY go.mod go.sum main.go Makefile ./
 
+COPY --from=templ-builder /app/src/Templates /app/src/Templates
+
 RUN go mod download
-RUN go install github.com/a-h/templ/cmd/templ@latest
 
-RUN make build-prod
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o tmp/main .
 
-FROM ubuntu:latest
+FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl
-
-COPY --from=builder /app/tmp .
-
+COPY ./static /app/static
 COPY .env .
+
+COPY --from=build-stage /app/tmp/main /app/main
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["/app/main"]

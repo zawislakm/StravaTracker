@@ -5,7 +5,6 @@ import (
 	"app/src/Models"
 	"app/src/StravaAPI"
 	"app/src/Templates"
-	"fmt"
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -32,22 +31,16 @@ func SetupServer() {
 
 	e.Static("/static", "static")
 	e.GET("/", func(c echo.Context) error {
-		//athletesData := serviceDb.GetAthletesData()
-		//athletesData := cache.GetActivities()
-		//return Render(c, http.StatusOK, Templates.Table(athletesData))
 		tableLabels := []string{"Name", "Distance", "AverageTime", "AverageSpeed", "AverageLength", "LongestActivity", "ElevationGain", "TotalActivities"}
-
 		return Render(c, http.StatusOK, Templates.Index(tableLabels))
 	})
 
 	e.GET("/table", func(c echo.Context) error {
-		yearFilter := c.QueryParam("year")
-		fmt.Printf("Year filter: %s\n", yearFilter)
+		yearFilter := c.QueryParams().Get("year")
 		if yearFilter == "" {
 			yearFilter = cache.Year
 		}
-		sortField := c.QueryParam("sort")
-		fmt.Println(yearFilter, sortField)
+		sortField := c.QueryParams().Get("year")
 		if sortField == "" {
 			sortField = "Distance"
 		}
