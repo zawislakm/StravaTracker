@@ -10,5 +10,4 @@ The Strava Tracker application is designed to monitor and track activities of a 
 - Docker
 
 Application fetch each data from [Strava API](https://developers.strava.com/docs/reference/) and store it in MongoDB. 
-Data is displayed in the web application. To display the data, the application uses htmx to fetch the data from the server and 
-templ to render HTML templates. Docker is used to make the application portable and easy to deploy.
+Data is displayed in the web application. To display the data, the application uses htmx to fetch the data from the server and templ to render HTML templates. Docker is used to make the application portable and easy to deploy.
