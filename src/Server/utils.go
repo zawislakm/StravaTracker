@@ -32,7 +32,7 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 			log.Println("Calling for activities")
 			activities, err := apiService.StravaGetClubActivities()
 			if err != nil {
-				log.Fatalf("Error getting activities from Strava API: %v", err)
+				log.Printf("Error getting activities from Strava API: %v", err)
 			}
 			newActivities := filterNewActivities(activities, dbService)
 			processNewActivities(newActivities, dbService)
