@@ -136,7 +136,7 @@ func (service *MongoDBClient) getClientConnection(uri string) error {
 	}
 
 	service.quit = make(chan struct{})
-	go service.monitorInactivity()
+	//go service.monitorInactivity() removed closing connection due to inactivity
 	return nil
 }
 

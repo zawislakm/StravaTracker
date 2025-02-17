@@ -19,8 +19,7 @@ import (
 // TODO rethink service locking logic, maybe it is not needed
 
 func (service *MongoDBClient) InsertAthlete(athlete *Models.StravaAthlete) error {
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
 	log.Println("Inserting athlete")
 	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
@@ -45,12 +44,13 @@ func (service *MongoDBClient) InsertAthlete(athlete *Models.StravaAthlete) error
 	if err != nil {
 		return err
 	}
+	////defer service.mu.Unlock()
 	return nil
 }
 
 func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) error {
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
+	////defer service.mu.Unlock()
 	log.Println(fmt.Sprintf("Getting athlete index: %s", athlete.ID))
 	collection, err := service.getCollection(athletesCollection)
 	if err != nil {
@@ -68,12 +68,12 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *Models.StravaAthlete) err
 	if err != nil {
 		return err
 	}
+	//service.mu.Unlock()
 	return nil
 }
 
 func (service *MongoDBClient) GetUniqueYears() ([]string, error) {
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
 	log.Println("Getting unique years")
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
@@ -97,15 +97,14 @@ func (service *MongoDBClient) GetUniqueYears() ([]string, error) {
 	for year := range uniqueYears {
 		years = append(years, year)
 	}
-
+	//service.mu.Unlock()
 	return years, nil
 }
 
 func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error) {
 	// official Strava API does not provide any ID for the activities,
 	// so to avoid duplicates of the same activity in the database we need to get the latest activity
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
 	log.Println("Getting latest activity")
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
@@ -120,12 +119,12 @@ func (service *MongoDBClient) GetLatestActivity() (*Models.StravaActivity, error
 	} else if err != nil {
 		return nil, err
 	}
+	//service.mu.Unlock()
 	return &activity, nil
 }
 
 func (service *MongoDBClient) InsertActivity(activity Models.StravaActivity) error {
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
 	log.Println(fmt.Sprintf("Inserting activity: %s, for athlete %s", activity.Name, activity.ID))
 	collection, err := service.getCollection(activitiesCollection)
 	if err != nil {
@@ -150,6 +149,7 @@ func (service *MongoDBClient) InsertActivity(activity Models.StravaActivity) err
 	if err != nil {
 		return err
 	}
+	//service.mu.Unlock()
 	return nil
 }
 
@@ -228,8 +228,7 @@ func (service *MongoDBClient) getAthleteDataSumUp(athlete *Models.StravaAthlete,
 }
 
 func (service *MongoDBClient) GetAthletesData(year string) []Models.AthleteData {
-	service.mu.Lock()
-	defer service.mu.Unlock()
+	//service.mu.Lock()
 	log.Println("Getting sum up of all activities for all athletes")
 	if year == "" {
 		year = time.Now().Format("2006")
@@ -244,5 +243,6 @@ func (service *MongoDBClient) GetAthletesData(year string) []Models.AthleteData 
 			athleteData = append(athleteData, athleteDataSumUp)
 		}
 	}
+	//service.mu.Unlock()
 	return athleteData
 }
