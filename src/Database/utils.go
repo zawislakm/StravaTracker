@@ -183,9 +183,6 @@ func (service *MongoDBClient) getCollection(collection string) (*mongo.Collectio
 	if err != nil {
 		return nil, err
 	}
-	service.mu.Lock()
-	defer service.mu.Unlock()
-
 	service.lastActivity = time.Now()
 	return service.client.Database(DbName).Collection(collection), nil
 }

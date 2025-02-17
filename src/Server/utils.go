@@ -33,15 +33,16 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 			activities, err := apiService.StravaGetClubActivities()
 			if err != nil {
 				log.Printf("Error getting activities from Strava API: %v", err)
-			}
-			newActivities := filterNewActivities(activities, dbService)
-			processNewActivities(newActivities, dbService)
-			if len(newActivities) > 0 {
-				log.Println("New activities found")
-				// TODO send a notification to frontend about new activities
-				cache.ReloadChan <- true // pass year of activities to reload, maybe reload is not needed
 			} else {
-				log.Println("No new activities found")
+				newActivities := filterNewActivities(activities, dbService)
+				if len(newActivities) > 0 {
+					processNewActivities(newActivities, dbService)
+					log.Println("New activities found")
+					// TODO send a notification to frontend about new activities
+					cache.ReloadChan <- true // pass year of activities to reload, maybe reload is not needed
+				} else {
+					log.Println("No new activities found")
+				}
 			}
 		}
 
@@ -54,7 +55,9 @@ func filterNewActivities(activities []Models.StravaActivity, dbService *Database
 
 	mostRecentDBActivity, err := dbService.GetLatestActivity()
 	if err != nil {
-		log.Fatalf("Error getting latest activity from database: %v", err)
+		// could not get the latest activity from the database, impossible to compare the activities to find new ones
+		log.Printf("Error getting latest activity from database: %v \n", err)
+		return []Models.StravaActivity{}
 	}
 
 	newActivities := make([]Models.StravaActivity, 0)
@@ -74,7 +77,7 @@ func processNewActivities(activities []Models.StravaActivity, dbService *Databas
 	for i := len(activities) - 1; i >= 0; i-- {
 		err := dbService.InsertActivity(activities[i])
 		if err != nil {
-			log.Fatalf("Error inserting activity: %v", err)
+			log.Printf("Error inserting activity: %v\n", err)
 		}
 	}
 
