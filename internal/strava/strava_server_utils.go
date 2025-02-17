@@ -1,9 +1,8 @@
-package Server
+package strava
 
 import (
-	"app/src/Database"
-	"app/src/Models"
-	"app/src/StravaAPI"
+	"app/internal/database"
+	"app/internal/model"
 	"log"
 	"sync"
 	"time"
@@ -11,7 +10,7 @@ import (
 
 type DataCache struct {
 	// idk if cache is needed now when year is stored here also, may lead to often reloading, rethink this
-	Activities []Models.AthleteData
+	Activities []model.AthleteData
 	Year       string
 	ReloadChan chan bool
 	mu         sync.Mutex
@@ -19,7 +18,7 @@ type DataCache struct {
 
 var apiCallTimeout = 5 * time.Minute
 
-func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.MongoDBClient, cache *DataCache) {
+func GetActivities(apiService *ServiceStravaAPI, dbService *database.MongoDBClient, cache *DataCache) {
 	// fill this function to run each 5 minutes
 	// get the latest activities from the Strava API
 	log.Println("Goroutine to get activities started")
@@ -35,11 +34,16 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 				log.Printf("Error getting activities from Strava API: %v", err)
 			} else {
 				newActivities := filterNewActivities(activities, dbService)
+
 				if len(newActivities) > 0 {
-					processNewActivities(newActivities, dbService)
-					log.Println("New activities found")
-					// TODO send a notification to frontend about new activities
-					cache.ReloadChan <- true // pass year of activities to reload, maybe reload is not needed
+					if len(newActivities) > 10 {
+						log.Printf("New acctiviteid found, more than 10: %v, something wrong happend, skipping this request data \n", len(newActivities))
+					} else {
+						processNewActivities(newActivities, dbService)
+						log.Println("New activities found")
+						// TODO send a notification to frontend about new activities
+						cache.ReloadChan <- true // pass year of activities to reload, maybe reload is not needed
+					}
 				} else {
 					log.Println("No new activities found")
 				}
@@ -49,7 +53,7 @@ func GetActivities(apiService *StravaAPI.ServiceStravaAPI, dbService *Database.M
 	}
 }
 
-func filterNewActivities(activities []Models.StravaActivity, dbService *Database.MongoDBClient) []Models.StravaActivity {
+func filterNewActivities(activities []model.StravaActivity, dbService *database.MongoDBClient) []model.StravaActivity {
 	// get the latest activity from the database
 	// filter the activities that are not in the database
 
@@ -57,10 +61,10 @@ func filterNewActivities(activities []Models.StravaActivity, dbService *Database
 	if err != nil {
 		// could not get the latest activity from the database, impossible to compare the activities to find new ones
 		log.Printf("Error getting latest activity from database: %v \n", err)
-		return []Models.StravaActivity{}
+		return []model.StravaActivity{}
 	}
 
-	newActivities := make([]Models.StravaActivity, 0)
+	newActivities := make([]model.StravaActivity, 0)
 
 	for _, activity := range activities {
 		if activity.CompareStravaData(mostRecentDBActivity) {
@@ -72,7 +76,7 @@ func filterNewActivities(activities []Models.StravaActivity, dbService *Database
 	return newActivities
 }
 
-func processNewActivities(activities []Models.StravaActivity, dbService *Database.MongoDBClient) {
+func processNewActivities(activities []model.StravaActivity, dbService *database.MongoDBClient) {
 	// insert the new activities into the database in reverse order to the newest activity is inserted last
 	for i := len(activities) - 1; i >= 0; i-- {
 		err := dbService.InsertActivity(activities[i])
@@ -83,7 +87,7 @@ func processNewActivities(activities []Models.StravaActivity, dbService *Databas
 
 }
 
-func newDataCache(serviceDb *Database.MongoDBClient) *DataCache {
+func NewDataCache(serviceDb *database.MongoDBClient) *DataCache {
 	log.Println("Creating data cache")
 	year := time.Now().Format("2006")
 	cache := &DataCache{
@@ -95,7 +99,7 @@ func newDataCache(serviceDb *Database.MongoDBClient) *DataCache {
 	return cache
 }
 
-func (cache *DataCache) GetActivities(serviceDb *Database.MongoDBClient, year string) []Models.AthleteData {
+func (cache *DataCache) GetActivities(serviceDb *database.MongoDBClient, year string) []model.AthleteData {
 	log.Println("Getting activities from cache")
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
@@ -108,7 +112,7 @@ func (cache *DataCache) GetActivities(serviceDb *Database.MongoDBClient, year st
 	return cache.Activities
 }
 
-func (cache *DataCache) reloadData(serviceDb *Database.MongoDBClient) {
+func (cache *DataCache) reloadData(serviceDb *database.MongoDBClient) {
 	for {
 		select {
 		case <-cache.ReloadChan:

@@ -1,7 +1,7 @@
-package StravaAPI
+package strava
 
 import (
-	"app/src/Models"
+	"app/internal/model"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,7 +20,7 @@ var apiVariables *ApiStravaVariables
 
 type ServiceStravaAPI struct {
 	Client      *http.Client
-	CachedToken *Models.StravaOauthResponse
+	CachedToken *model.StravaOauthResponse
 }
 
 type ApiStravaVariables struct {
@@ -58,16 +58,16 @@ func GetStravaClient() *ServiceStravaAPI {
 	return apiClient
 }
 
-func getStravaHeader(service *ServiceStravaAPI) (Models.StravaHeader, error) {
+func getStravaHeader(service *ServiceStravaAPI) (model.StravaHeader, error) {
 	if service.CachedToken == nil || service.CachedToken.IsExpired() {
 		oauthResponse, err := stravaGetToken()
 		if err != nil {
-			return Models.StravaHeader{}, err
+			return model.StravaHeader{}, err
 		}
 		service.CachedToken = &oauthResponse
 	}
 
-	return Models.StravaHeader{
+	return model.StravaHeader{
 		Authorization: fmt.Sprintf("Bearer %s", service.CachedToken.AccessToken),
 	}, nil
 }
@@ -97,7 +97,7 @@ func (service *ServiceStravaAPI) setUpRequest(method string, path string) (*http
 	return req, nil
 }
 
-func performRequest[T Models.StravaAthlete | Models.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
+func performRequest[T model.StravaAthlete | model.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
 	req, err := service.setUpRequest(method, path)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up request for %s: %v", path, err)
@@ -124,7 +124,7 @@ func performRequest[T Models.StravaAthlete | Models.StravaActivity](service *Ser
 	return responseSave, nil
 }
 
-func iteratePages[T Models.StravaAthlete | Models.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
+func iteratePages[T model.StravaAthlete | model.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
 	var responseData []T
 	var page = 1
 	for {

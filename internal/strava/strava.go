@@ -1,7 +1,7 @@
-package StravaAPI
+package strava
 
 import (
-	"app/src/Models"
+	"app/internal/model"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,11 +9,11 @@ import (
 	"net/http"
 )
 
-func stravaGetToken() (Models.StravaOauthResponse, error) {
+func stravaGetToken() (model.StravaOauthResponse, error) {
 
 	baseURL := fmt.Sprintf("%s/oauth/token", StravaURL)
 
-	payload := Models.StravaOauthRequest{
+	payload := model.StravaOauthRequest{
 		ClientID:     apiVariables.ClientID,
 		ClientSecret: apiVariables.ClientSecret,
 		RefreshToken: apiVariables.RefreshToken,
@@ -23,13 +23,13 @@ func stravaGetToken() (Models.StravaOauthResponse, error) {
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return Models.StravaOauthResponse{}, err
+		return model.StravaOauthResponse{}, err
 	}
 
 	response, err := http.Post(baseURL, "application/json", bytes.NewBuffer(payloadBytes))
 
 	if err != nil {
-		return Models.StravaOauthResponse{}, err
+		return model.StravaOauthResponse{}, err
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -40,29 +40,29 @@ func stravaGetToken() (Models.StravaOauthResponse, error) {
 	}(response.Body)
 
 	if response.StatusCode != http.StatusOK {
-		return Models.StravaOauthResponse{}, fmt.Errorf("unexpected status: %s", response.Status)
+		return model.StravaOauthResponse{}, fmt.Errorf("unexpected status: %s", response.Status)
 	}
 
-	var responseData Models.StravaOauthResponse
+	var responseData model.StravaOauthResponse
 	if err := json.NewDecoder(response.Body).Decode(&responseData); err != nil {
-		return Models.StravaOauthResponse{}, err
+		return model.StravaOauthResponse{}, err
 	}
 
 	return responseData, nil
 }
 
-func (service *ServiceStravaAPI) StravaGetClubAthletes() ([]Models.StravaAthlete, error) {
+func (service *ServiceStravaAPI) StravaGetClubAthletes() ([]model.StravaAthlete, error) {
 	baseURL := fmt.Sprintf("%s/clubs/%s/members", StravaURL, apiVariables.ClubID)
-	responseData, err := iteratePages(service, http.MethodGet, baseURL, []Models.StravaAthlete{})
+	responseData, err := iteratePages(service, http.MethodGet, baseURL, []model.StravaAthlete{})
 	if err != nil {
 		return nil, err
 	}
 	return responseData, nil
 }
 
-func (service *ServiceStravaAPI) StravaGetClubActivities() ([]Models.StravaActivity, error) {
+func (service *ServiceStravaAPI) StravaGetClubActivities() ([]model.StravaActivity, error) {
 	baseURL := fmt.Sprintf("%s/clubs/%s/activities", StravaURL, apiVariables.ClubID)
-	responseData, err := iteratePages(service, http.MethodGet, baseURL, []Models.StravaActivity{})
+	responseData, err := iteratePages(service, http.MethodGet, baseURL, []model.StravaActivity{})
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,11 @@
-package Templates
+package templates
 
 import (
-    "app/src/Models"
+    "app/internal/model"
     "fmt"
 )
 
-templ Table(athletesData []Models.AthleteData) {
+templ Table(athletesData []model.AthleteData) {
     <tbody id="data-table-body">
         for _, athlete := range athletesData {
             <tr>

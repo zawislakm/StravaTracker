@@ -1,7 +1,7 @@
 package Database
 
 import (
-	"app/src/Models"
+	"app/internal/model"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -26,11 +26,11 @@ func (suite *RepositorySuite) TearDownTest() {
 }
 
 func (suite *RepositorySuite) TestInsertActivity() {
-	athlete := Models.StravaAthlete{
+	athlete := model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
-	activity1 := Models.StravaActivity{
+	activity1 := model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Morning Run",
 		Distance:           10000,
@@ -39,7 +39,7 @@ func (suite *RepositorySuite) TestInsertActivity() {
 		Type:               "Run",
 		SportType:          "Running",
 	}
-	activity2 := Models.StravaActivity{
+	activity2 := model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Evening Run",
 		Distance:           15000,
@@ -64,7 +64,7 @@ func (suite *RepositorySuite) TestInsertActivity() {
 }
 
 func (suite *RepositorySuite) TestInsertAthlete() {
-	athlete := &Models.StravaAthlete{
+	athlete := &model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
@@ -78,12 +78,12 @@ func (suite *RepositorySuite) TestInsertAthlete() {
 }
 
 func (suite *RepositorySuite) TestGetAthleteIndex() {
-	athlete1 := &Models.StravaAthlete{
+	athlete1 := &model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
 
-	athlete2 := &Models.StravaAthlete{
+	athlete2 := &model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
@@ -104,11 +104,11 @@ func (suite *RepositorySuite) TestGetAthleteIndex() {
 }
 
 func (suite *RepositorySuite) TestGetLatestActivity() {
-	athlete := Models.StravaAthlete{
+	athlete := model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
-	activity1 := Models.StravaActivity{
+	activity1 := model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Morning Run",
 		Distance:           10000,
@@ -117,7 +117,7 @@ func (suite *RepositorySuite) TestGetLatestActivity() {
 		Type:               "Run",
 		SportType:          "Running",
 	}
-	activity2 := Models.StravaActivity{
+	activity2 := model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Evening Run",
 		Distance:           15000,
@@ -162,15 +162,15 @@ func (suite *RepositorySuite) TestGetLatestActivity() {
 }
 
 func (suite *RepositorySuite) TestGetAthletesData() {
-	athlete1 := Models.StravaAthlete{
+	athlete1 := model.StravaAthlete{
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
-	athlete2 := Models.StravaAthlete{
+	athlete2 := model.StravaAthlete{
 		Firstname: "Jane",
 		Lastname:  "Smith",
 	}
-	activity1 := Models.StravaActivity{
+	activity1 := model.StravaActivity{
 		Athlete:            athlete1,
 		Name:               "Morning Run",
 		Distance:           10000,
@@ -180,7 +180,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		SportType:          "Running",
 	}
 
-	activity2 := Models.StravaActivity{
+	activity2 := model.StravaActivity{
 		Athlete:            athlete2,
 		Name:               "Evening Run",
 		Distance:           15000,
@@ -190,7 +190,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		SportType:          "Running",
 	}
 
-	activity3 := Models.StravaActivity{
+	activity3 := model.StravaActivity{
 		Athlete:            athlete2,
 		Name:               "Evening Run",
 		Distance:           15000,

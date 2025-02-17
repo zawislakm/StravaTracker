@@ -1,7 +1,7 @@
 package Database
 
 import (
-	"app/src/Database"
+	"app/internal/database"
 	"context"
 	"fmt"
 	"github.com/testcontainers/testcontainers-go"
@@ -12,7 +12,7 @@ import (
 type TestDatabase struct {
 	DbAddress string
 	container testcontainers.Container
-	DbService *Database.MongoDBClient
+	DbService *database.MongoDBClient
 }
 
 func SetupTestDatabase() *TestDatabase {
@@ -42,7 +42,7 @@ func (tdb *TestDatabase) ClearDatabase() {
 	_ = tdb.DbService.Clear()
 }
 
-func createMongoContainer(ctx context.Context) (testcontainers.Container, string, *Database.MongoDBClient, error) {
+func createMongoContainer(ctx context.Context) (testcontainers.Container, string, *database.MongoDBClient, error) {
 	var port = "27017/tcp"
 
 	req := testcontainers.GenericContainerRequest{
@@ -65,9 +65,9 @@ func createMongoContainer(ctx context.Context) (testcontainers.Container, string
 	log.Println("mongo container ready and running at port: ", p.Port())
 	uri := fmt.Sprintf("mongodb://localhost:%s", p.Port())
 
-	Database.URI = uri
-	Database.DbName = "StravaTestDb"
-	serviceDb := Database.GetDbClient()
+	database.URI = uri
+	database.DbName = "StravaTestDb"
+	serviceDb := database.GetDbClient()
 
 	return container, uri, serviceDb, nil
 }

@@ -1,0 +1,33 @@
+package templates
+
+import "fmt"
+
+templ Index(tableLabels []string) {
+	<html lang="en" xmlns="">
+		<head>
+			<title>Athletes Data</title>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+			//      <script src="/static/scripts.js"></script>
+			<link rel="stylesheet" href="/assets/styles.css"/>
+		</head>
+		<body>
+			<div id="table-container">
+				<h1>Athletes Data</h1>
+				//<label>Year </label>
+				//<div id="year-box" hx-get="/years" hx-trigger="load" hx-target="#year-box" hx-swap="outerHTML"></div>
+				<table>
+					<thead>
+						<tr>
+							for _, label := range tableLabels {
+								<th><button hx-get={ fmt.Sprintf("/table?sort=%s", label) } hx-target="#data-table-body" hx-swap="outerHTML">{ label }</button></th>
+							}
+						</tr>
+					</thead>
+					<tbody id="data-table-body" hx-get="/table?sort=Distance" hx-trigger="load" hx-swap="outerHTML"></tbody>
+				</table>
+			</div>
+		</body>
+	</html>
+}
