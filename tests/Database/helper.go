@@ -12,7 +12,7 @@ import (
 type TestDatabase struct {
 	DbAddress string
 	container testcontainers.Container
-	DbService *database.MongoDBClient
+	DbService *database.service
 }
 
 func SetupTestDatabase() *TestDatabase {
@@ -42,7 +42,7 @@ func (tdb *TestDatabase) ClearDatabase() {
 	_ = tdb.DbService.Clear()
 }
 
-func createMongoContainer(ctx context.Context) (testcontainers.Container, string, *database.MongoDBClient, error) {
+func createMongoContainer(ctx context.Context) (testcontainers.Container, string, *database.service, error) {
 	var port = "27017/tcp"
 
 	req := testcontainers.GenericContainerRequest{

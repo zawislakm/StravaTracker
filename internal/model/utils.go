@@ -12,7 +12,12 @@ func (s *StravaOauthResponse) IsExpired() bool {
 }
 
 func (apiActivity *StravaActivity) CompareStravaData(dbActivity *StravaActivity) bool {
-	return apiActivity.Distance == dbActivity.Distance && apiActivity.MovingTime == dbActivity.MovingTime && apiActivity.TotalElevationGain == dbActivity.TotalElevationGain && apiActivity.Type == dbActivity.Type && apiActivity.SportType == dbActivity.SportType && apiActivity.WorkoutType == dbActivity.WorkoutType
+	return apiActivity.Distance == dbActivity.Distance &&
+		apiActivity.MovingTime == dbActivity.MovingTime &&
+		apiActivity.TotalElevationGain == dbActivity.TotalElevationGain &&
+		apiActivity.Type == dbActivity.Type &&
+		apiActivity.SportType == dbActivity.SportType &&
+		apiActivity.WorkoutType == dbActivity.WorkoutType
 }
 func (athleteData *AthleteData) FormatDuration() string {
 	hours := int(athleteData.AverageTime) / 3600

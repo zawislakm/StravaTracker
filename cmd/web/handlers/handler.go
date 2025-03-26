@@ -3,10 +3,10 @@ package handlers
 import "app/internal/database"
 
 type Handler struct {
-	db *database.MongoDBClient
+	db database.Service
 }
 
-func NewHandler(db *database.MongoDBClient) *Handler {
+func NewHandler(db database.Service) *Handler {
 	return &Handler{
 		db: db,
 	}

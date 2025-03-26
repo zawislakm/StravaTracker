@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"strings"
 	"time"
 
@@ -16,12 +15,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// TODO rethink service locking logic, maybe it is not needed
+type Service interface {
+	// InsertAthlete inserts a new athlete into the database.
+	InsertAthlete(athlete *model.StravaAthlete) error
+	// GetAthleteIndex retrieves an athlete from the database by their name.
+	GetAthleteIndex(athlete *model.StravaAthlete) error
+	// GetAthleteByID retrieves an athlete from the database by their ID.
+	GetAthleteByID(athleteId *primitive.ObjectID) (*model.StravaAthlete, error)
+	// GetUniqueYears retrieves unique years from the activities collection.
+	GetUniqueYears() ([]string, error)
+	// GetLatestActivity retrieves the latest activity from the database.
+	GetLatestActivity() (*model.StravaActivity, error)
+	// InsertActivity inserts a new activity into the database.
+	InsertActivity(activity *model.StravaActivity) error
+	// UpdateAthleteDataSumUp updates the sum up of all activities for an athlete for a given year.
+	UpdateAthleteDataSumUp(athleteId *primitive.ObjectID, year string) error
+	// GetAthletesData retrieves the sum up of all activities for all athletes for a given year.
+	GetAthletesData(year string) []model.AthleteData
+	// RemoveActivities removes all activities from the database for a given date.
+	RemoveActivities() error
+}
 
-func (service *MongoDBClient) InsertAthlete(athlete *model.StravaAthlete) error {
-	//service.mu.Lock()
+func (s *service) InsertAthlete(athlete *model.StravaAthlete) error {
 	log.Println("Inserting athlete")
-	collection, err := service.getCollection(athletesCollection)
+	collection, err := s.getCollection(athletesCollection)
 	if err != nil {
 		return err
 	}
@@ -44,15 +61,12 @@ func (service *MongoDBClient) InsertAthlete(athlete *model.StravaAthlete) error 
 	if err != nil {
 		return err
 	}
-	////defer service.mu.Unlock()
 	return nil
 }
 
-func (service *MongoDBClient) GetAthleteIndex(athlete *model.StravaAthlete) error {
-	//service.mu.Lock()
-	////defer service.mu.Unlock()
+func (s *service) GetAthleteIndex(athlete *model.StravaAthlete) error {
 	log.Println(fmt.Sprintf("Getting athlete index: %s", athlete.ID))
-	collection, err := service.getCollection(athletesCollection)
+	collection, err := s.getCollection(athletesCollection)
 	if err != nil {
 		return err
 	}
@@ -60,7 +74,7 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *model.StravaAthlete) erro
 	filter := bson.M{"firstname": athlete.Firstname, "lastname": athlete.Lastname}
 	err = collection.FindOne(context.Background(), filter).Decode(&athlete)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = service.InsertAthlete(athlete)
+		err = s.InsertAthlete(athlete)
 		if err != nil {
 			return err
 		}
@@ -68,14 +82,28 @@ func (service *MongoDBClient) GetAthleteIndex(athlete *model.StravaAthlete) erro
 	if err != nil {
 		return err
 	}
-	//service.mu.Unlock()
 	return nil
 }
 
-func (service *MongoDBClient) GetUniqueYears() ([]string, error) {
-	//service.mu.Lock()
+func (s *service) GetAthleteByID(athleteId *primitive.ObjectID) (*model.StravaAthlete, error) {
+	collection, err := s.getCollection(athletesCollection)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": athleteId}
+	var athlete model.StravaAthlete
+	err = collection.FindOne(context.Background(), filter).Decode(&athlete)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return &athlete, nil
+}
+
+func (s *service) GetUniqueYears() ([]string, error) {
 	log.Println("Getting unique years")
-	collection, err := service.getCollection(activitiesCollection)
+	collection, err := s.getCollection(activitiesCollection)
 	if err != nil {
 		return nil, err
 	}
@@ -97,16 +125,14 @@ func (service *MongoDBClient) GetUniqueYears() ([]string, error) {
 	for year := range uniqueYears {
 		years = append(years, year)
 	}
-	//service.mu.Unlock()
 	return years, nil
 }
 
-func (service *MongoDBClient) GetLatestActivity() (*model.StravaActivity, error) {
+func (s *service) GetLatestActivity() (*model.StravaActivity, error) {
 	// official Strava API does not provide any ID for the activities,
 	// so to avoid duplicates of the same activity in the database we need to get the latest activity
-	//service.mu.Lock()
 	log.Println("Getting latest activity")
-	collection, err := service.getCollection(activitiesCollection)
+	collection, err := s.getCollection(activitiesCollection)
 	if err != nil {
 		return nil, err
 	}
@@ -119,18 +145,16 @@ func (service *MongoDBClient) GetLatestActivity() (*model.StravaActivity, error)
 	} else if err != nil {
 		return nil, err
 	}
-	//service.mu.Unlock()
 	return &activity, nil
 }
 
-func (service *MongoDBClient) InsertActivity(activity model.StravaActivity) error {
-	//service.mu.Lock()
+func (s *service) InsertActivity(activity *model.StravaActivity) error {
 	log.Println(fmt.Sprintf("Inserting activity: %s, for athlete %s", activity.Name, activity.ID))
-	collection, err := service.getCollection(activitiesCollection)
+	collection, err := s.getCollection(activitiesCollection)
 	if err != nil {
 		return err
 	}
-	err = service.GetAthleteIndex(&activity.Athlete)
+	err = s.GetAthleteIndex(&activity.Athlete)
 	if err != nil {
 		return err
 	}
@@ -149,110 +173,64 @@ func (service *MongoDBClient) InsertActivity(activity model.StravaActivity) erro
 	if err != nil {
 		return err
 	}
-	//service.mu.Unlock()
 	return nil
 }
 
-func (service *MongoDBClient) getAthletes() []model.StravaAthlete {
-	log.Println("Getting all athletes")
-	collection, err := service.getCollection(athletesCollection)
+func (s *service) UpdateAthleteDataSumUp(athleteId *primitive.ObjectID, year string) error {
+	// TODO make it as transaction
+	log.Println(fmt.Sprintf("Updateing sum up for %s, from: %s", athleteId, year))
+	collection, err := s.getCollection(athleteDataSumCollection)
 	if err != nil {
-		log.Fatal(err)
-	}
-	filter := bson.D{}
-
-	cursor, err := collection.Find(context.Background(), filter)
-	if err != nil {
-		log.Fatal(err)
+		log.Println("Error getting collection to  update athlete data sum up", err)
+		return err
 	}
 
-	athletes := make([]model.StravaAthlete, 0)
-	if err := cursor.All(context.Background(), &athletes); err != nil {
-		log.Fatal(err)
-	}
-	return athletes
-}
-
-func (service *MongoDBClient) getAthleteActivities(athlete *model.StravaAthlete, year string) []model.StravaActivity {
-	log.Println(fmt.Sprintf("Getting all activities for athlete: %s", athlete.ID))
-	collection, err := service.getCollection(activitiesCollection)
-	if err != nil {
-		log.Fatal(err)
-	}
 	filter := bson.M{
-		"userId": athlete.ID,
-		"date":   bson.M{"$regex": fmt.Sprintf("^%s", year)},
-		//"type":   "Ride", // TODO investigate if there is a possibility to get other sport types from this club API
+		"userId": athleteId,
+		"year":   year,
 	}
-	cursor, err := collection.Find(context.Background(), filter)
+
+	_, err = collection.DeleteOne(context.Background(), filter)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error deleting athlete data sum up", err)
+		return err
+	}
+	athlete, err := s.GetAthleteByID(athleteId)
+	if err != nil {
+		log.Println("Error getting athlete by id to sum up", err)
+		return err
+	}
+	athleteDataSum := s.calculateAthleteDataSumUp(athlete, year)
+	err = s.insertAthleteDataSumUp(&athleteDataSum)
+	if err != nil {
+		log.Println("Error inserting athlete data sum up", err)
+		return err
 	}
 
-	activities := make([]model.StravaActivity, 0)
-	if err := cursor.All(context.Background(), &activities); err != nil {
-		log.Fatal(err)
-	}
-
-	return activities
+	return nil
 }
 
-func (service *MongoDBClient) getAthleteDataSumUp(athlete *model.StravaAthlete, year string) model.AthleteData {
-	log.Println(fmt.Sprintf("Getting sum up of all activities for athlete: %s", athlete.ID))
-	activities := service.getAthleteActivities(athlete, year)
-
-	athleteData := model.AthleteData{Name: athlete.Firstname + " " + athlete.Lastname}
-
-	if len(activities) == 0 {
-		return athleteData
-	}
-
-	athleteData.TotalActivities = len(activities)
-
-	for _, activity := range activities {
-		athleteData.Distance += activity.Distance
-		athleteData.ElevationGain += activity.TotalElevationGain
-		athleteData.LongestActivity = math.Max(athleteData.LongestActivity, activity.Distance)
-		athleteData.TotalTime += float64(activity.MovingTime)
-	}
-
-	// convert distance from meters to kilometers
-	athleteData.Distance /= 1000
-	athleteData.LongestActivity /= 1000
-
-	athleteData.AverageTime = athleteData.TotalTime / float64(athleteData.TotalActivities)
-	athleteData.AverageLength = athleteData.Distance / float64(athleteData.TotalActivities)
-	athleteData.AverageSpeed = athleteData.Distance / (athleteData.TotalTime / 3600)
-
-	return athleteData
-}
-
-func (service *MongoDBClient) GetAthletesData(year string) []model.AthleteData {
-	//service.mu.Lock()
-	log.Println("Getting sum up of all activities for all athletes")
+func (s *service) GetAthletesData(year string) []model.AthleteData {
 	if year == "" {
 		year = time.Now().Format("2006")
 	}
-	log.Println(fmt.Sprintf("Year: %s", year))
+	log.Println(fmt.Sprintf("Getting athletes data for year: %s", year))
 	athleteData := make([]model.AthleteData, 0)
-	athletes := service.getAthletes()
+	athletes := s.getAthletes()
 
 	for _, athlete := range athletes {
-		athleteDataSumUp := service.getAthleteDataSumUp(&athlete, year)
+		athleteDataSumUp, _ := s.getAthleteDataSumUp(&athlete, year)
 		if athleteDataSumUp.TotalActivities > 0 {
 			athleteData = append(athleteData, athleteDataSumUp)
 		}
 	}
-	//service.mu.Unlock()
 	return athleteData
 }
 
-// remove all activities from given date
-func (service *MongoDBClient) RemoveActivities() error {
+func (s *service) RemoveActivities() error {
 	date := "2025-02-27"
-	//service.mu.Lock()
 	log.Println(fmt.Sprintf("Removing all activities from date: %s", date))
-	collection, err := service.getCollection(activitiesCollection)
+	collection, err := s.getCollection(activitiesCollection)
 	if err != nil {
 		return err
 	}
@@ -262,6 +240,5 @@ func (service *MongoDBClient) RemoveActivities() error {
 	if err != nil {
 		return err
 	}
-	//service.mu.Unlock()
 	return nil
 }

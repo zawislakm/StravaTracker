@@ -51,13 +51,15 @@ type StravaActivity struct {
 }
 
 type AthleteData struct {
-	Name            string
-	Distance        float64
-	TotalTime       float64
-	LongestActivity float64
-	ElevationGain   float64
-	TotalActivities int
-	AverageTime     float64
-	AverageSpeed    float64
-	AverageLength   float64
+	UserID          *primitive.ObjectID `bson:"userId"`
+	Name            string              `bson:"name"`
+	Distance        float64             `bson:"distance"`
+	TotalTime       float64             `bson:"totalTime"`
+	LongestActivity float64             `bson:"longestActivity"`
+	ElevationGain   float64             `bson:"elevationGain"`
+	TotalActivities int                 `bson:"totalActivities"`
+	AverageTime     float64             `bson:"averageTime"`
+	AverageSpeed    float64             `bson:"averageSpeed"`
+	AverageLength   float64             `bson:"averageLength"`
+	Year            string              `bson:"year"`
 }

@@ -18,11 +18,10 @@ func (h *Handler) HandleTable(w http.ResponseWriter, r *http.Request) {
 		yearFilter = "2025" // TODO make it current year
 	}
 
-	sortField := r.URL.Query().Get("sortField")
+	sortField := r.URL.Query().Get("sort")
 	if sortField == "" {
 		sortField = "Distance"
 	}
-
 	athletesData := h.db.GetAthletesData(yearFilter)
 	model.SortAthletesData(athletesData, sortField)
 	component := templates.Table(athletesData)
