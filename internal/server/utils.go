@@ -3,7 +3,6 @@ package server
 import (
 	"app/internal/database"
 	"app/internal/model"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"time"
@@ -32,13 +31,13 @@ func filterNewActivities(activities []model.StravaActivity, dbService database.S
 	return newActivities
 }
 
-type athleteUpdateKey struct {
+type athleteUpdate struct {
 	id   *primitive.ObjectID
 	year string
 }
 
-func (auk athleteUpdateKey) keyValue() string {
-	return auk.id.Hex() + "_" + auk.year
+func (au athleteUpdate) getKey() string {
+	return au.id.Hex() + "_" + au.year
 }
 
 func getYear(dateStr string) string {
@@ -53,25 +52,20 @@ func getYear(dateStr string) string {
 func processNewActivities(activities []model.StravaActivity, dbService database.Service) {
 	// insert the new activities into the database in reverse order to the newest activity is inserted last
 
-	athletesRequiringUpdate := map[string]athleteUpdateKey{}
-	for i := len(activities) - 1; i >= 0; i-- {
-		err := dbService.InsertActivity(&activities[i]) //pass pointer so it would be updated
-		if err != nil {
+	athletesRequiringUpdate := map[string]athleteUpdate{}
+	for _, activity := range activities {
+		if err := dbService.InsertActivity(&activity); err != nil {
 			log.Printf("Error inserting activity: %v\n", err)
 			continue
 		}
-		key := athleteUpdateKey{
-			id:   activities[i].UserID,
-			year: getYear(activities[i].Date),
+		au := athleteUpdate{
+			id:   activity.UserID,
+			year: getYear(activity.Date),
 		}
-		fmt.Println(key, key.id, key.year, activities[i].Date, getYear(activities[i].Date), activities[i].Date)
-		athletesRequiringUpdate[key.keyValue()] = key
+		athletesRequiringUpdate[au.getKey()] = au
 	}
-	fmt.Println(len(activities), len(athletesRequiringUpdate))
 	for _, athlete := range athletesRequiringUpdate {
-		fmt.Println(athlete, athlete.id, athlete.year)
-		err := dbService.UpdateAthleteDataSumUp(athlete.id, athlete.year)
-		if err != nil {
+		if err := dbService.UpdateAthleteDataSumUp(athlete.id, athlete.year); err != nil {
 			log.Printf("Error updating athlete data sum up: %v\n", err)
 		}
 	}

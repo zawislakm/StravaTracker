@@ -2,6 +2,7 @@ package strava
 
 import (
 	"app/internal/model"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,45 +13,48 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var StravaURL = "https://www.strava.com/api/v3"
-var DefaultPerPage = 30
-
-var apiClient *ServiceStravaAPI
-var apiVariables *ApiStravaVariables
-
-type ServiceStravaAPI struct {
+type serviceStravaAPI struct {
 	Client      *http.Client
 	CachedToken *model.StravaOauthResponse
 }
 
-type ApiStravaVariables struct {
+type apiStravaVariables struct {
 	ClientID     string
 	ClientSecret string
 	RefreshToken string
 	ClubID       string
 }
 
+var (
+	stravaURL      = "https://www.strava.com/api/v3"
+	defaultPerPage = 30
+
+	apiClient    *serviceStravaAPI
+	apiVariables *apiStravaVariables
+)
+
 func init() {
-	apiClient = &ServiceStravaAPI{
+	apiClient = &serviceStravaAPI{
 		Client:      &http.Client{},
 		CachedToken: nil,
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+		log.Fatal(fmt.Sprintf("Error loading .env file: %v", err))
 	}
-	apiVariables = &ApiStravaVariables{
+	apiVariables = &apiStravaVariables{
 		ClientID:     os.Getenv("STRAVA_CLIENT_ID"),
 		ClientSecret: os.Getenv("STRAVA_CLIENT_SECRET"),
 		RefreshToken: os.Getenv("STRAVA_REFRESH_TOKEN"),
 		ClubID:       os.Getenv("STRAVA_CLUB_ID"),
 	}
-	log.Println("Strava API initialized")
+	log.Println("StravaAPI variables initialized")
 }
 
-func GetStravaClient() *ServiceStravaAPI {
+func GetStravaClient() ServiceStravaAPI {
+	log.Println("Getting Strava client service")
 	if apiClient == nil {
-		apiClient = &ServiceStravaAPI{
+		apiClient = &serviceStravaAPI{
 			Client:      &http.Client{},
 			CachedToken: nil,
 		}
@@ -58,7 +62,47 @@ func GetStravaClient() *ServiceStravaAPI {
 	return apiClient
 }
 
-func getStravaHeader(service *ServiceStravaAPI) (model.StravaHeader, error) {
+func stravaGetToken() (model.StravaOauthResponse, error) {
+
+	baseURL := fmt.Sprintf("%s/oauth/token", stravaURL)
+
+	payload := model.StravaOauthRequest{
+		ClientID:     apiVariables.ClientID,
+		ClientSecret: apiVariables.ClientSecret,
+		RefreshToken: apiVariables.RefreshToken,
+		GrantType:    "refresh_token",
+		F:            "json",
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return model.StravaOauthResponse{}, err
+	}
+
+	response, err := http.Post(baseURL, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return model.StravaOauthResponse{}, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+
+		}
+	}(response.Body)
+
+	if response.StatusCode != http.StatusOK {
+		return model.StravaOauthResponse{}, fmt.Errorf("unexpected status: %s", response.Status)
+	}
+
+	var responseData model.StravaOauthResponse
+	if err := json.NewDecoder(response.Body).Decode(&responseData); err != nil {
+		return model.StravaOauthResponse{}, err
+	}
+
+	return responseData, nil
+}
+
+func getStravaHeader(service *serviceStravaAPI) (model.StravaHeader, error) {
 	if service.CachedToken == nil || service.CachedToken.IsExpired() {
 		oauthResponse, err := stravaGetToken()
 		if err != nil {
@@ -72,10 +116,10 @@ func getStravaHeader(service *ServiceStravaAPI) (model.StravaHeader, error) {
 	}, nil
 }
 
-func (service *ServiceStravaAPI) setRequestHeaders(req *http.Request) error {
-	headers, err := getStravaHeader(service)
+func (s *serviceStravaAPI) setRequestHeaders(req *http.Request) error {
+	headers, err := getStravaHeader(s)
 	if err != nil {
-		return fmt.Errorf("Error getting headers: %v", err)
+		return fmt.Errorf("error getting headers: %v", err)
 	}
 
 	req.Header.Add("Authorization", headers.Authorization)
@@ -83,34 +127,32 @@ func (service *ServiceStravaAPI) setRequestHeaders(req *http.Request) error {
 	return nil
 }
 
-func (service *ServiceStravaAPI) setUpRequest(method string, path string) (*http.Request, error) {
+func (s *serviceStravaAPI) setUpRequest(method string, path string) (*http.Request, error) {
 	req, err := http.NewRequest(method, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request for %s: %v", path, err)
 	}
 
-	err = service.setRequestHeaders(req)
-	if err != nil {
+	if err = s.setRequestHeaders(req); err != nil {
 		return nil, fmt.Errorf("error setting headers for %s: %v", path, err)
 	}
 
 	return req, nil
 }
 
-func performRequest[T model.StravaAthlete | model.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
-	req, err := service.setUpRequest(method, path)
+func performRequest[T model.StravaAthlete | model.StravaActivity](s *serviceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
+	req, err := s.setUpRequest(method, path)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up request for %s: %v", path, err)
 	}
 
-	response, err := service.Client.Do(req)
+	response, err := s.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error performing request for %s: %v", path, err)
 	}
 
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
+		if err := Body.Close(); err != nil {
 		}
 	}(response.Body)
 
@@ -124,14 +166,14 @@ func performRequest[T model.StravaAthlete | model.StravaActivity](service *Servi
 	return responseSave, nil
 }
 
-func iteratePages[T model.StravaAthlete | model.StravaActivity](service *ServiceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
+func iteratePages[T model.StravaAthlete | model.StravaActivity](s *serviceStravaAPI, method string, path string, responseSave []T) ([]T, error) {
 	var responseData []T
 	var page = 1
 	for {
-		params := fmt.Sprintf("?page=%d&per_page=%d", page, DefaultPerPage)
+		params := fmt.Sprintf("?page=%d&per_page=%d", page, defaultPerPage)
 		fullURL := fmt.Sprintf("%s%s", path, params)
 
-		elem, err := performRequest(service, method, fullURL, responseSave)
+		elem, err := performRequest(s, method, fullURL, responseSave)
 		if err != nil {
 			return nil, err
 		}

@@ -14,6 +14,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+type service struct {
+	client *mongo.Client
+}
+
+type databaseVariables struct {
+	URI    string
+	DbName string
+}
 type indexSetupData struct {
 	collectionName string
 	indexKeys      bson.D
@@ -22,9 +30,8 @@ type indexSetupData struct {
 var (
 	defaultTimeout = 2 * time.Minute
 
-	dbClient *service
-	URI      string
-	DbName   string
+	dbClient    *service
+	dbVariables *databaseVariables
 
 	athletesCollection       = "athletes"
 	activitiesCollection     = "activities"
@@ -48,34 +55,33 @@ var (
 	}
 )
 
-type service struct {
-	client *mongo.Client
-}
-
-func GetDbClient() Service {
-	log.Println("Getting database client")
-
-	if dbClient != nil {
-		return dbClient
+func init() {
+	dbClient = &service{
+		client: nil,
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file with database variables: %v", err)
-	} else {
-		URI = os.Getenv("DB_URI_LOCAL")
-		DbName = os.Getenv("DB_NAME_LOCAL")
+		log.Fatal(fmt.Sprintf("Error loading .env file: %v", err))
 	}
+	dbVariables = &databaseVariables{
+		URI:    os.Getenv("DB_URI_LOCAL"),
+		DbName: os.Getenv("DB_NAME_LOCAL"),
+	}
+	log.Println("Database variables initialized")
+
+	if err := dbClient.setupIndexes(); err != nil {
+		log.Fatalf("Error setting up indexes: %v", err)
+	}
+}
+
+func GetDbClient() Service {
+	log.Println("Getting database client service")
 
 	if dbClient == nil {
 		dbClient = &service{
 			client: nil,
 		}
 	}
-
-	if err := dbClient.setupIndexes(); err != nil {
-		log.Fatalf("Error setting up indexes: %v", err)
-	}
-
 	return dbClient
 }
 
@@ -143,16 +149,16 @@ func (s *service) isConnected() bool {
 func (s *service) getCollection(collection string) (*mongo.Collection, error) {
 	// getCollection gets a MongoDB collection and updates the last activity time
 	log.Println("Getting collection: ", collection)
-	if err := s.getClientConnection(URI); err != nil {
+	if err := s.getClientConnection(dbVariables.URI); err != nil {
 		return nil, err
 	}
-	return s.client.Database(DbName).Collection(collection), nil
+	return s.client.Database(dbVariables.DbName).Collection(collection), nil
 }
 
 func (s *service) Clear() error {
 	// function that drops all records from the database
 	log.Println("Clearing database")
-	return s.client.Database(DbName).Drop(context.Background())
+	return s.client.Database(dbVariables.DbName).Drop(context.Background())
 }
 
 func (s *service) Close() error {

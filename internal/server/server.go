@@ -16,7 +16,7 @@ import (
 
 var apiCallTimeout = 1 * time.Minute
 
-func GetActivities(apiService *strava.ServiceStravaAPI, dbService database.Service, newDataChan chan bool) {
+func GetActivities(apiService strava.ServiceStravaAPI, dbService database.Service, newDataChan chan bool) {
 	// fill this function to run each 5 minutes
 	// get the latest activities from the Strava API
 	log.Println("Goroutine to get activities started")
@@ -53,7 +53,7 @@ func GetActivities(apiService *strava.ServiceStravaAPI, dbService database.Servi
 
 type Server struct {
 	port   int
-	strava *strava.ServiceStravaAPI
+	strava strava.ServiceStravaAPI
 	db     database.Service
 }
 
