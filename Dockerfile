@@ -30,7 +30,7 @@ FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
 WORKDIR /app
 
-COPY ./cmd/web/assets /app/cmd/web/assets
+COPY cmd/web/static /app/cmd/web/static
 COPY .env .
 
 COPY --from=build-stage /app/tmp/main /app/main

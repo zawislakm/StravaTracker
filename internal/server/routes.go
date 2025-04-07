@@ -41,7 +41,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}))
 
 	fileServer := http.FileServer(http.FS(web.Files))
-	e.GET("/assets/*", echo.WrapHandler(fileServer))
+	e.GET("/static/*", echo.WrapHandler(fileServer))
 
 	e.GET("/web", echo.WrapHandler(templ.Handler(templates.HelloForm())))
 	e.POST("/hello", echo.WrapHandler(http.HandlerFunc(web.HelloWebHandler)))
@@ -49,15 +49,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	webHandler := handlers.NewHandler(s.db)
 	e.GET("/", echo.WrapHandler(http.HandlerFunc(webHandler.HandleIndex)))
 	e.GET("/table", echo.WrapHandler(http.HandlerFunc(webHandler.HandleTable)))
-
-	//	e.GET("/years", func(c echo.Context) error {
-	//	// TODO rebuild cache to store data years and add this for frontend
-	//	years, err := serviceDb.GetUniqueYears()
-	//	if err != nil {
-	//		return err
-	//	}
-	//	return Render(c, http.StatusOK, Templates.Years(years))
-	//})
 
 	e.GET("/websocket", s.websocketHandler)
 

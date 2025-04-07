@@ -24,7 +24,7 @@ func (h *Handler) HandleTable(w http.ResponseWriter, r *http.Request) {
 	}
 	athletesData := h.db.GetAthletesData(yearFilter)
 	model.SortAthletesData(athletesData, sortField)
-	component := templates.Table(athletesData)
+	component := templates.TableData(athletesData)
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

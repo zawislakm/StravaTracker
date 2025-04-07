@@ -11,8 +11,7 @@ func (h *Handler) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 	}
-	tableLabels := []string{"Name", "Distance", "AverageTime", "AverageSpeed", "AverageLength", "LongestActivity", "ElevationGain", "TotalActivities"}
-	component := templates.Index(tableLabels)
+	component := templates.Index()
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

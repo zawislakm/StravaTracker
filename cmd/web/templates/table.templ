@@ -1,23 +1,65 @@
 package templates
 
 import (
-    "app/internal/model"
-    "fmt"
+	"app/internal/model"
+	"fmt"
 )
 
-templ Table(athletesData []model.AthleteData) {
-    <tbody id="data-table-body">
-        for _, athlete := range athletesData {
-            <tr>
-                <td>{athlete.Name}</td>
-                <td>{fmt.Sprintf("%.2f km", athlete.Distance)}</td>
-                <td>{fmt.Sprintf("%s", athlete.FormatDuration())}</td>
-                <td>{fmt.Sprintf("%.2f km/h", athlete.AverageSpeed)}</td>
-                <td>{fmt.Sprintf("%.2f km", athlete.AverageLength)}</td>
-                <td>{fmt.Sprintf("%.2f km", athlete.LongestActivity)}</td>
-                <td>{fmt.Sprintf("%.2f m", athlete.ElevationGain)}</td>
-                <td>{fmt.Sprintf("%d", athlete.TotalActivities)}</td>
-            </tr>
-        }
-    </tbody>
+var (
+	labels = []string{
+		"Distance",
+		"AverageTime",
+		"AverageSpeed",
+		"AverageLength",
+		"LongestActivity",
+		"ElevationGain",
+		"TotalActivities",
+	}
+)
+
+templ createSortButton(label string) {
+	<th class="sort-header">
+		<div class="header-content">
+
+			<div class="btns">
+			<span>{ label }</span>
+				<button class="btn-sort" data-key={ label } data-order="asc">↑</button>
+				<button class="btn-sort" data-key={ label } data-order="desc">↓</button>
+			</div>
+		</div>
+	</th>
+}
+
+templ Table() {
+	<div id="table-container">
+		<h1>Rywalizacja rowerowa</h1>
+		<table>
+			<thead id="table-header">
+				<tr>
+					<th>Name</th>
+					for _, label := range labels {
+						@createSortButton(label)
+					}
+				</tr>
+			</thead>
+			<tbody id="data-table-body" hx-get="/table?sort=Distance&order=desc" hx-trigger="load" hx-swap="outerHTML"></tbody>
+		</table>
+	</div>
+}
+
+templ TableData(athletesData []model.AthleteData) {
+	<tbody id="data-table-body">
+		for _, athlete := range athletesData {
+			<tr>
+				<td>{ athlete.Name }</td>
+				<td>{ fmt.Sprintf("%.2f km", athlete.Distance) }</td>
+				<td>{ fmt.Sprintf("%s", athlete.FormatDuration()) }</td>
+				<td>{ fmt.Sprintf("%.2f km/h", athlete.AverageSpeed) }</td>
+				<td>{ fmt.Sprintf("%.2f km", athlete.AverageLength) }</td>
+				<td>{ fmt.Sprintf("%.2f km", athlete.LongestActivity) }</td>
+				<td>{ fmt.Sprintf("%.2f m", athlete.ElevationGain) }</td>
+				<td>{ fmt.Sprintf("%d", athlete.TotalActivities) }</td>
+			</tr>
+		}
+	</tbody>
 }
