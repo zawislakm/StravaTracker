@@ -2,7 +2,6 @@
 document.addEventListener("DOMContentLoaded", ()=>{
     const tableContainer = document.getElementById("table-container");
     const buttons = document.querySelectorAll(".btn-sort"); // Add dot for class selector
-    console.log("STARTED", buttons.length);
 
     buttons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -11,17 +10,14 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
             const headers = Array.from(document.querySelectorAll("th .header-content span"));
             const columnIndex = headers.findIndex(span => span.textContent === key) + 1; // +1 because of the Name column
-            console.log(headers,columnIndex)
 
             const rows = Array.from(tableContainer.querySelectorAll("tbody tr"));
 
             const initialPositions = rows.map((row) => row.offsetTop);
-            console.log(key, order, initialPositions);
 
             rows.sort((a,b) =>{
                 const aValue = parseFloat(a.cells[columnIndex].textContent.trim().replace(/[^0-9]/g, ""));
                 const bValue = parseFloat(b.cells[columnIndex].textContent.trim().replace(/[^0-9]/g, ""));
-                console.log(aValue, bValue);
                 if(order === "asc"){
                     return aValue > bValue ? -1 : 1;
                 }else{

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"app/cmd/web"
-	"app/cmd/web/templates"
 	"github.com/a-h/templ"
 	"github.com/coder/websocket"
 	"github.com/labstack/echo/v4"
@@ -42,9 +41,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	fileServer := http.FileServer(http.FS(web.Files))
 	e.GET("/static/*", echo.WrapHandler(fileServer))
-
-	e.GET("/web", echo.WrapHandler(templ.Handler(templates.HelloForm())))
-	e.POST("/hello", echo.WrapHandler(http.HandlerFunc(web.HelloWebHandler)))
 
 	webHandler := handlers.NewHandler(s.db)
 	e.GET("/", echo.WrapHandler(http.HandlerFunc(webHandler.HandleIndex)))
