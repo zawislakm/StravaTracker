@@ -14,13 +14,13 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-var apiCallTimeout = 1 * time.Minute
+var apiCallTimeout, _ = strconv.Atoi(os.Getenv("API_CALL_TIMEOUT"))
 
 func GetActivities(apiService strava.ServiceStravaAPI, dbService database.Service, newDataChan chan bool) {
 	// fill this function to run each 5 minutes
 	// get the latest activities from the Strava API
 	log.Println("Goroutine to get activities started")
-	ticker := time.NewTicker(apiCallTimeout)
+	ticker := time.NewTicker(time.Duration(apiCallTimeout) * time.Minute)
 
 	for {
 		select {

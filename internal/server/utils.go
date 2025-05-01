@@ -53,7 +53,8 @@ func processNewActivities(activities []model.StravaActivity, dbService database.
 	// insert the new activities into the database in reverse order to the newest activity is inserted last
 
 	athletesRequiringUpdate := map[string]athleteUpdate{}
-	for _, activity := range activities {
+	for i := len(activities) - 1; i >= 0; i-- { // adding in reverse orders so the newest activity was added last to db
+		activity := activities[i]
 		if err := dbService.InsertActivity(&activity); err != nil {
 			log.Printf("Error inserting activity: %v\n", err)
 			continue

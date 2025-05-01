@@ -64,8 +64,8 @@ func init() {
 		log.Fatal(fmt.Sprintf("Error loading .env file: %v", err))
 	}
 	dbVariables = &databaseVariables{
-		URI:    os.Getenv("DB_URI_LOCAL"),
-		DbName: os.Getenv("DB_NAME_LOCAL"),
+		URI:    os.Getenv("DB_URI"),
+		DbName: os.Getenv("DB_NAME"),
 	}
 	log.Println("Database variables initialized")
 
