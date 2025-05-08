@@ -128,3 +128,13 @@ func (s *service) getAthleteDataSumUp(athlete *model.StravaAthlete, year string)
 
 	return athleteDataSum, nil
 }
+
+func (s *service) recalculateAllAthletesDataSumUpForYear(year string) {
+	log.Println(fmt.Sprintf("Getting recalcualted on startup all sum ups of acitivites for year: %s", year))
+	athletes := s.getAthletes()
+	for _, athlete := range athletes {
+		if err := s.UpdateAthleteDataSumUp(athlete.ID, year); err != nil {
+			log.Println(fmt.Sprintf("Error updating athlete data sum up for year: %s", athlete.ID))
+		}
+	}
+}

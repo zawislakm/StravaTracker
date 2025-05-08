@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,6 +54,7 @@ var (
 			},
 		},
 	}
+	oncePrecalculateForCurrentYear sync.Once
 )
 
 func init() {
@@ -72,6 +74,10 @@ func init() {
 	if err := dbClient.setupIndexes(); err != nil {
 		log.Fatalf("Error setting up indexes: %v", err)
 	}
+	oncePrecalculateForCurrentYear.Do(func() {
+		dbClient.recalculateAllAthletesDataSumUpForYear(time.Now().Format("2006"))
+	})
+
 }
 
 func GetDbClient() Service {
