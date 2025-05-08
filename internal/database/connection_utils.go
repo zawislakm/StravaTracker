@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -54,30 +53,20 @@ var (
 			},
 		},
 	}
-	oncePrecalculateForCurrentYear sync.Once
+	onceAfterConnection sync.Once
 )
 
 func init() {
 	dbClient = &service{
 		client: nil,
 	}
-
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(fmt.Sprintf("Error loading .env file: %v", err))
-	}
-	dbVariables = &databaseVariables{
-		URI:    os.Getenv("DB_URI"),
-		DbName: os.Getenv("DB_NAME"),
+	if dbVariables == nil {
+		dbVariables = &databaseVariables{
+			URI:    os.Getenv("DB_URI_LOCAL"),
+			DbName: os.Getenv("DB_NAME_LOCAL"),
+		}
 	}
 	log.Println("Database variables initialized")
-
-	if err := dbClient.setupIndexes(); err != nil {
-		log.Fatalf("Error setting up indexes: %v", err)
-	}
-	oncePrecalculateForCurrentYear.Do(func() {
-		dbClient.recalculateAllAthletesDataSumUpForYear(time.Now().Format("2006"))
-	})
-
 }
 
 func GetDbClient() Service {
@@ -88,6 +77,12 @@ func GetDbClient() Service {
 			client: nil,
 		}
 	}
+	onceAfterConnection.Do(func() {
+		if err := dbClient.setupIndexes(); err != nil {
+			log.Fatalf("Error setting up indexes: %v", err)
+		}
+		dbClient.recalculateAllAthletesDataSumUpForYear(time.Now().Format("2006"))
+	})
 	return dbClient
 }
 
@@ -161,13 +156,13 @@ func (s *service) getCollection(collection string) (*mongo.Collection, error) {
 	return s.client.Database(dbVariables.DbName).Collection(collection), nil
 }
 
-func (s *service) Clear() error {
+func (s *service) clear() error {
 	// function that drops all records from the database
 	log.Println("Clearing database")
 	return s.client.Database(dbVariables.DbName).Drop(context.Background())
 }
 
-func (s *service) Close() error {
+func (s *service) close() error {
 	// Close manually closes the MongoDB connection
 	if !s.isConnected() {
 		return nil

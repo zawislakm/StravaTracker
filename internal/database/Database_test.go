@@ -1,4 +1,4 @@
-package Database
+package database
 
 import (
 	"app/internal/model"
@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-// TODO add test for year query
-// TODO add test for unique yeas
 type RepositorySuite struct {
 	suite.Suite
 	testDatabase *TestDatabase
@@ -49,16 +47,9 @@ func (suite *RepositorySuite) TestInsertActivity() {
 	}
 
 	suite.Run("when athlete is in database", func() {
-		err := suite.testDatabase.DbService.InsertActivity(activity1)
+		err := suite.testDatabase.DbService.InsertActivity(&activity1)
 		suite.Nil(err)
-		err = suite.testDatabase.DbService.InsertActivity(activity2)
-		suite.Nil(err)
-	})
-
-	suite.Run("when athlete is not in database", func() {
-		err := suite.testDatabase.DbService.InsertActivity(activity1)
-		suite.Nil(err)
-		err = suite.testDatabase.DbService.InsertActivity(activity2)
+		err = suite.testDatabase.DbService.InsertActivity(&activity2)
 		suite.Nil(err)
 	})
 }
@@ -108,7 +99,7 @@ func (suite *RepositorySuite) TestGetLatestActivity() {
 		Firstname: "John",
 		Lastname:  "Doe",
 	}
-	activity1 := model.StravaActivity{
+	activity1 := &model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Morning Run",
 		Distance:           10000,
@@ -117,7 +108,7 @@ func (suite *RepositorySuite) TestGetLatestActivity() {
 		Type:               "Run",
 		SportType:          "Running",
 	}
-	activity2 := model.StravaActivity{
+	activity2 := &model.StravaActivity{
 		Athlete:            athlete,
 		Name:               "Evening Run",
 		Distance:           15000,
@@ -170,7 +161,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		Firstname: "Jane",
 		Lastname:  "Smith",
 	}
-	activity1 := model.StravaActivity{
+	activity1 := &model.StravaActivity{
 		Athlete:            athlete1,
 		Name:               "Morning Run",
 		Distance:           10000,
@@ -180,7 +171,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		SportType:          "Running",
 	}
 
-	activity2 := model.StravaActivity{
+	activity2 := &model.StravaActivity{
 		Athlete:            athlete2,
 		Name:               "Evening Run",
 		Distance:           15000,
@@ -190,7 +181,7 @@ func (suite *RepositorySuite) TestGetAthletesData() {
 		SportType:          "Running",
 	}
 
-	activity3 := model.StravaActivity{
+	activity3 := &model.StravaActivity{
 		Athlete:            athlete2,
 		Name:               "Evening Run",
 		Distance:           15000,

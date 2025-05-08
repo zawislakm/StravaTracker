@@ -34,6 +34,8 @@ type Service interface {
 	GetAthletesData(year string) []model.AthleteData
 	// RemoveActivities removes all activities from the database for a given date.
 	RemoveActivities() error
+	// Clear data from the database
+	Clear() error
 }
 
 func (s *service) InsertAthlete(athlete *model.StravaAthlete) error {
@@ -237,6 +239,15 @@ func (s *service) RemoveActivities() error {
 
 	filter := bson.M{"date": date}
 	_, err = collection.DeleteMany(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) Clear() error {
+	log.Println("Clearing database")
+	err := s.client.Database(dbVariables.DbName).Drop(context.Background())
 	if err != nil {
 		return err
 	}

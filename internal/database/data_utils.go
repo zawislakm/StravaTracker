@@ -86,7 +86,7 @@ func (s *service) calculateAthleteDataSumUp(athlete *model.StravaAthlete, year s
 }
 
 func (s *service) insertAthleteDataSumUp(athleteData *model.AthleteData) error {
-	log.Println(fmt.Sprintf("Inserting sum up of athlete: %s, for athlete: %s", athleteData, athleteData.UserID))
+	log.Println(fmt.Sprintf("Inserting sum up of athlete: %v, for athlete: %s", athleteData, athleteData.UserID))
 	collection, err := s.getCollection(athleteDataSumCollection)
 	if err != nil {
 		log.Println("Error getting collection to  insert athlete data sum up", err)

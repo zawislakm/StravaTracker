@@ -9,16 +9,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#    - name: Set up Go
-#      uses: actions/setup-go@v3
-#      with:
-#        go-version: '1.22'
-#
-#    - name: Install dependencies
-#      run: go mod tidy
-#
-#    - name: Run tests
-#      run: go test -v ./tests/...
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Install templ
+        run: |
+          TEMPL_VERSION=$(go list -m -f '{{ .Version }}' github.com/a-h/templ)
+          go install github.com/a-h/templ/cmd/templ@$TEMPL_VERSION
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Generate templ files
+        run: templ generate
+
+      - name: Run tests
+        run: go test -v ./...
