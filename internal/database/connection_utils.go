@@ -62,8 +62,8 @@ func init() {
 	}
 	if dbVariables == nil {
 		dbVariables = &databaseVariables{
-			URI:    os.Getenv("DB_URI_LOCAL"),
-			DbName: os.Getenv("DB_NAME_LOCAL"),
+			URI:    os.Getenv("DB_URI"),
+			DbName: os.Getenv("DB_NAME"),
 		}
 	}
 	log.Println("Database variables initialized")
