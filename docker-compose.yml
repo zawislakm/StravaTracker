@@ -1,9 +1,39 @@
-version: '3.8'
 services:
-  app:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - app-network
+
+  app-blue: &app-common
+    container_name: app-blue
     build:
       context: .
       dockerfile: Dockerfile
-    network_mode: "host"
-    command: ["./main"]   # Command to start the application
+    restart: always
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    command: ["./main"]
 
+
+  app-green:
+    <<: *app-common
+    container_name: app-green
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

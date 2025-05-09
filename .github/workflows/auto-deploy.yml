@@ -4,23 +4,25 @@ name: Auto-deploy
 on:
   workflow_run:
     workflows: [ "Run Tests" ]
-    branches: [ master ]
+    branches: [ zero-downtime-deploy ]
     types:
       - completed
   push:
     branches:
-      - master
+      - zero-downtime-deploy
 
 jobs:
-  build:
+  deploy:
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'deploy-add' }}
-    environment: production
+    environment: prod
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+
       - name: executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
