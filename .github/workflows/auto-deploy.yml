@@ -9,7 +9,7 @@ on:
       - completed
   push:
     branches:
-      - master
+      - zero-downtime-deploy
 
 jobs:
   deploy:

@@ -2,8 +2,9 @@
 set -e
 
 # Pull changes from repository
-#git checkout master
-#git pull origin master
+git fetch
+git checkout zero-downtime-deploy
+git pull origin zero-downtime-deploy
 
 #!/bin/bash
 
