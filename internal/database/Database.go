@@ -36,6 +36,8 @@ type Service interface {
 	RemoveActivities() error
 	// Clear data from the database
 	Clear() error
+	// Health check if connection to db working correctly
+	Health() map[string]string
 }
 
 func (s *service) InsertAthlete(athlete *model.StravaAthlete) error {
@@ -252,4 +254,18 @@ func (s *service) Clear() error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) Health() map[string]string {
+	if err := s.checkDatabaseConnection(); err != nil {
+		log.Println("Health check: connection to database failed")
+		return map[string]string{
+			"status":  "failed",
+			"message": "Database is unreachable",
+		}
+	}
+	return map[string]string{
+		"status":  "ok",
+		"message": "Database is ready",
+	}
 }

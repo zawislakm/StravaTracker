@@ -147,6 +147,21 @@ func (s *service) isConnected() bool {
 	return err == nil
 }
 
+func (s *service) checkDatabaseConnection() error {
+	if err := s.getClientConnection(dbVariables.URI); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := s.client.Ping(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) getCollection(collection string) (*mongo.Collection, error) {
 	// getCollection gets a MongoDB collection and updates the last activity time
 	log.Println("Getting collection: ", collection)

@@ -26,7 +26,9 @@ RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o tmp/main cmd/api/main.go
 
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
+FROM debian:bullseye-slim AS build-release-stage
+
+RUN apt-get update && apt-get install -y curl ca-certificates && apt-get clean
 
 WORKDIR /app
 

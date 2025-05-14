@@ -45,7 +45,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	webHandler := handlers.NewHandler(s.db)
 	e.GET("/", echo.WrapHandler(http.HandlerFunc(webHandler.HandleIndex)))
 	e.GET("/table", echo.WrapHandler(http.HandlerFunc(webHandler.HandleTable)))
-
+	e.GET("/health", echo.WrapHandler(http.HandlerFunc(webHandler.HandleHealth)))
 	e.GET("/websocket", s.websocketHandler)
 
 	return e
@@ -58,10 +58,6 @@ func (s *Server) HelloWorldHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, resp)
 }
-
-//func (s *Server) healthHandler(c echo.Context) error {
-//	return c.JSON(http.StatusOK, s.db.Health())
-//}
 
 func (s *Server) websocketHandler(c echo.Context) error {
 	w := c.Response().Writer
