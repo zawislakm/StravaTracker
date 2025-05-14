@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
 
-      - name: executing remote ssh commands using ssh key
+      - name: Connect via ssh and run script
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -24,4 +24,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/StravaTracker
-            /home/ubuntu/StravaTracker/scripts/zero-downtime-deploy.sh
+            /home/ubuntu/StravaTracker/scripts/clear-docker-images.sh
