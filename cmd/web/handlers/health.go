@@ -9,7 +9,7 @@ import (
 
 func (h *Handler) HandleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	log.Println("KURWA KURWA KURWA CHECK")
+
 	dbHealth := h.db.Health()
 
 	if dbHealth["status"] == "ok" {
