@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-#git checkout master
-#git pull origin master
+git checkout master
+git pull origin master
 
 CONFIG_DIR="./nginx/conf.d"
 DEFAULT_CONF="$CONFIG_DIR/default.conf"

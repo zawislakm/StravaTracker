@@ -21,4 +21,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/StravaTracker
-            /home/ubuntu/StravaTracker/set-up-deploy.sh
+            /home/ubuntu/StravaTracker/scripts/set-up-deploy.sh

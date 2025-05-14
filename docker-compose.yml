@@ -19,6 +19,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      tags:
+        - app-blue:latest
+    image: app-blue:latest
     restart: always
     stop_signal: SIGTERM
     stop_grace_period: 30s
@@ -37,6 +40,10 @@ services:
     <<: *app-common
     container_name: app-green
     restart: unless-stopped
+    build:
+      tags:
+        - app-green:latest
+    image: app-green:latest
 
 networks:
   app-network:
