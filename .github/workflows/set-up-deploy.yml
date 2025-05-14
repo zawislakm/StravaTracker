@@ -1,18 +1,11 @@
-name: Auto-deploy
+name: Set-up deployment
 
 on:
-  workflow_run:
-    workflows: [ "Run Tests" ]
-    branches: [ master ]
-    types: [completed]
+  workflow_dispatch:
+
 
 jobs:
   deploy:
-    if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push'
-      }}
     runs-on: ubuntu-latest
     environment: prod
 
@@ -28,4 +21,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/StravaTracker
-            /home/ubuntu/StravaTracker/set-up-script.sh
+            /home/ubuntu/StravaTracker/set-up-deploy.sh
