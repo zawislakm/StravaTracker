@@ -30,19 +30,24 @@ templ createSortButton(label string) {
 }
 
 templ Table() {
-	<div id="table-container">
+	<div id="table-container" data-key="Distance" data-order="asc">
 		<h1>Rywalizacja rowerowa</h1>
-		<table>
-			<thead id="table-header">
-				<tr>
-					<th>Name</th>
-					for _, label := range labels {
-						@createSortButton(label)
-					}
-				</tr>
-			</thead>
-			<tbody id="data-table-body" hx-get="/table" hx-trigger="load" hx-swap="outerHTML"></tbody>
-		</table>
+		<div class="table-wrapper">
+			<div id="loading-overlay" class="loading-overlay hidden">
+				<div class="spinner"></div>
+			</div>
+			<table>
+				<thead id="table-header">
+					<tr>
+						<th>Name</th>
+						for _, label := range labels {
+							@createSortButton(label)
+						}
+					</tr>
+				</thead>
+				<tbody id="data-table-body"></tbody>
+			</table>
+		</div>
 	</div>
 }
 

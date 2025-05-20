@@ -15,7 +15,12 @@ templ Index() {
 		<body>
 			@Table()
 			<div hx-ext="sse" sse-connect="/events">
-				<div hx-get="/table" hx-trigger="sse:Table" hx-target="#data-table-body" hx-swap="outerHTML"></div>
+				<div
+					hx-get="/table"
+					hx-trigger="load,sse:Table"
+					hx-target="#data-table-body"
+					hx-swap="outerHTML"
+				></div>
 				<div id="update-data" sse-swap="Update"></div>
 			</div>
 		</body>

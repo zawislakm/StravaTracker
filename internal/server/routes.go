@@ -74,7 +74,6 @@ func (s *Server) eventsHandler(c echo.Context) error {
 			if newData {
 				fmt.Fprintf(c.Response(), "event: Table\ndata: New data athletes data to fetch\n\n")
 			}
-			s.lastUpdate = time.Now()
 			sendDateUpdate(c, s.lastUpdate)
 		case <-time.After(10 * time.Second):
 			fmt.Fprintf(c.Response(), "event: Keep-alive\ndata: connected\n\n")
