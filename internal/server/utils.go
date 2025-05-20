@@ -1,18 +1,25 @@
 package server
 
 import (
-	"app/internal/database"
+	"app/cmd/web/templates"
 	"app/internal/model"
+	"bytes"
+	"fmt"
+	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"time"
 )
 
-func filterNewActivities(activities []model.StravaActivity, dbService database.Service) []model.StravaActivity {
+func (s *Server) filterNewActivities(activities []model.StravaActivity) []model.StravaActivity {
 	// get the latest activity from the database
 	// filter the activities that are not in the database
 
-	mostRecentDBActivity, err := dbService.GetLatestActivity()
+	if len(activities) == 0 {
+		return []model.StravaActivity{}
+	}
+
+	mostRecentDBActivity, err := s.db.GetLatestActivity()
 	if err != nil {
 		// could not get the latest activity from the database, impossible to compare the activities to find new ones
 		log.Printf("Error getting latest activity from database: %v \n", err)
@@ -49,13 +56,13 @@ func getYear(dateStr string) string {
 	return data.Format("2006")
 }
 
-func processNewActivities(activities []model.StravaActivity, dbService database.Service) {
+func (s *Server) processNewActivities(activities []model.StravaActivity) {
 	// insert the new activities into the database in reverse order to the newest activity is inserted last
 
 	athletesRequiringUpdate := map[string]athleteUpdate{}
 	for i := len(activities) - 1; i >= 0; i-- { // adding in reverse orders so the newest activity was added last to db
 		activity := activities[i]
-		if err := dbService.InsertActivity(&activity); err != nil {
+		if err := s.db.InsertActivity(&activity); err != nil {
 			log.Printf("Error inserting activity: %v\n", err)
 			continue
 		}
@@ -66,18 +73,20 @@ func processNewActivities(activities []model.StravaActivity, dbService database.
 		athletesRequiringUpdate[au.getKey()] = au
 	}
 	for _, athlete := range athletesRequiringUpdate {
-		if err := dbService.UpdateAthleteDataSumUp(athlete.id, athlete.year); err != nil {
+		if err := s.db.UpdateAthleteDataSumUp(athlete.id, athlete.year); err != nil {
 			log.Printf("Error updating athlete data sum up: %v\n", err)
 		}
 	}
 }
 
-func waitForNewData(newDataChan chan bool) {
-	log.Println("Waiting for new data started")
-	for {
-		select {
-		case <-newDataChan:
-			log.Println("New data found chan function")
-		}
+func sendDateUpdate(c echo.Context, lastUpdate time.Time) {
+	var buf bytes.Buffer
+	err := templates.Update(lastUpdate.Format("2006-01-02 15:04")).Render(c.Request().Context(), &buf)
+	if err != nil {
+		fmt.Printf("Error rendering update template: %v\n", err)
+		return
 	}
+	html := buf.String()
+	fmt.Fprintf(c.Response(), "event: Update\ndata: %s\n\n", html)
+	c.Response().Flush()
 }

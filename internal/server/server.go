@@ -16,66 +16,66 @@ import (
 
 var apiCallTimeout, _ = strconv.Atoi(os.Getenv("API_CALL_TIMEOUT"))
 
-func GetActivities(apiService strava.ServiceStravaAPI, dbService database.Service, newDataChan chan bool) {
-	// fill this function to run each 5 minutes
+func (s *Server) getActivities() {
 	// get the latest activities from the Strava API
 	log.Println("Goroutine to get activities started")
-	ticker := time.NewTicker(time.Duration(apiCallTimeout) * time.Minute)
 
 	for {
-		select {
-		case <-ticker.C:
-			// get the latest activities from the Strava API
-			log.Println("Calling for activities")
-			activities, err := apiService.StravaGetClubActivities()
-			if err != nil {
-				log.Printf("Error getting activities from Strava API: %v", err)
-			} else {
-				newActivities := filterNewActivities(activities, dbService)
+		// get the latest activities from the Strava API
+		log.Println("Calling for activities")
+		activities, err := s.strava.StravaGetClubActivities()
 
-				if len(newActivities) > 0 {
-					if len(newActivities) > 1000 { // TODO, find out why it happens, I guess its error from strava
-						log.Printf("New acctiviteid found, more than 10: %v, something wrong happend, skipping this request data \n", len(newActivities))
-					} else {
-						processNewActivities(newActivities, dbService)
-						log.Println("New activities found")
-						// TODO send a notification to frontend about new activities
-						newDataChan <- true // pass year of activities to reload, maybe reload is not needed
-					}
+		if err != nil {
+			log.Printf("Error getting activities from Strava API: %v", err)
+		} else {
+			s.lastUpdate = time.Now()
+			newActivities := s.filterNewActivities(activities)
+
+			if len(newActivities) > 0 {
+				if len(newActivities) > 1000 { // TODO, find out why it happens, I guess its error from strava
+					log.Printf("New acctiviteid found, more than 10: %v, something wrong happend, skipping this request data \n", len(newActivities))
 				} else {
-					log.Println("No new activities found")
+					s.processNewActivities(newActivities)
+					log.Println("New activities found")
+					// TODO send a notification to frontend about new activities
+					s.newActivitiesChan <- true // pass year of activities to reload, maybe reload is not needed
 				}
+			} else {
+				s.newActivitiesChan <- false
+				log.Println("No new activities found")
 			}
 		}
-
+		time.Sleep(time.Duration(apiCallTimeout) * time.Second)
 	}
+
 }
 
 type Server struct {
-	port   int
-	strava strava.ServiceStravaAPI
-	db     database.Service
+	port              int
+	strava            strava.ServiceStravaAPI
+	db                database.Service
+	newActivitiesChan chan bool
+	lastUpdate        time.Time
 }
 
 func NewServer() *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	NewServer := &Server{
-		port:   port,
-		strava: strava.GetStravaClient(),
-		db:     database.GetDbClient(),
+		port:              port,
+		strava:            strava.GetStravaClient(),
+		db:                database.GetDbClient(),
+		newActivitiesChan: make(chan bool),
 	}
-	newDataChan := make(chan bool)
-	go waitForNewData(newDataChan)
-	go GetActivities(NewServer.strava, NewServer.db, newDataChan)
+	go NewServer.getActivities()
 
 	// Declare Server config
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", NewServer.port),
 		Handler:      NewServer.RegisterRoutes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	}
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 0, // Zero disables the write timeout, used in SSE
+	} // possible to create a separate Server on other port only for SSE connection
 
 	return server
 }

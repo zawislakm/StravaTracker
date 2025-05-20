@@ -20,9 +20,8 @@ var (
 templ createSortButton(label string) {
 	<th class="sort-header">
 		<div class="header-content">
-
 			<div class="btns">
-			<span>{ label }</span>
+				<span>{ label }</span>
 				<button class="btn-sort" data-key={ label } data-order="asc">↑</button>
 				<button class="btn-sort" data-key={ label } data-order="desc">↓</button>
 			</div>
@@ -42,7 +41,7 @@ templ Table() {
 					}
 				</tr>
 			</thead>
-			<tbody id="data-table-body" hx-get="/table?sort=Distance&order=desc" hx-trigger="load" hx-swap="outerHTML"></tbody>
+			<tbody id="data-table-body" hx-get="/table" hx-trigger="load" hx-swap="outerHTML"></tbody>
 		</table>
 	</div>
 }

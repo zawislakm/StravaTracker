@@ -47,8 +47,40 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e.GET("/table", echo.WrapHandler(http.HandlerFunc(webHandler.HandleTable)))
 	e.GET("/health", echo.WrapHandler(http.HandlerFunc(webHandler.HandleHealth)))
 	e.GET("/websocket", s.websocketHandler)
-
+	e.GET("/events", s.eventsHandler)
 	return e
+}
+
+func (s *Server) eventsHandler(c echo.Context) error {
+	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+	c.Response().Header().Set("X-Accel-Buffering", "no") // used so nginx proxy pass events
+
+	fmt.Fprintf(c.Response(), "event: Keep-alive\ndata: First connection\n\n")
+	c.Response().Flush()
+
+	sendDateUpdate(c, s.lastUpdate)
+	for {
+		select {
+		case <-c.Request().Context().Done():
+			fmt.Println("Client connection closed with reason:", c.Request().Context().Err())
+
+			return nil
+		case newData := <-s.newActivitiesChan:
+			fmt.Printf("New activities: %v\n", newData)
+			if newData {
+				fmt.Fprintf(c.Response(), "event: Table\ndata: New data athletes data to fetch\n\n")
+			}
+			s.lastUpdate = time.Now()
+			sendDateUpdate(c, s.lastUpdate)
+		case <-time.After(10 * time.Second):
+			fmt.Fprintf(c.Response(), "event: Keep-alive\ndata: connected\n\n")
+			c.Response().Flush()
+		}
+	}
 }
 
 func (s *Server) HelloWorldHandler(c echo.Context) error {
