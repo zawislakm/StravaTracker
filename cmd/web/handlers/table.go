@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"app/cmd/web/templates"
-	"app/internal/model"
 	"log"
 	"net/http"
+	"time"
 )
 
 func (h *Handler) HandleTable(w http.ResponseWriter, r *http.Request) {
@@ -15,15 +15,10 @@ func (h *Handler) HandleTable(w http.ResponseWriter, r *http.Request) {
 
 	yearFilter := r.URL.Query().Get("year")
 	if yearFilter == "" {
-		yearFilter = "2025" // TODO make it current year
+		yearFilter = time.Now().Format("2006")
 	}
 
-	sortField := r.URL.Query().Get("sort")
-	if sortField == "" {
-		sortField = "Distance"
-	}
 	athletesData := h.db.GetAthletesData(yearFilter)
-	model.SortAthletesData(athletesData, sortField)
 	component := templates.TableData(athletesData)
 	err = component.Render(r.Context(), w)
 	if err != nil {
