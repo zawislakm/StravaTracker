@@ -4,30 +4,44 @@ body {
     padding: 0;
     background-color: #f4f4f4;
 }
+
 #table-container {
     margin: 20px;
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-#table-container h1{
+
+#update-container {
+    display: inline-block;
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+#table-container h1 {
     text-align: center;
 }
+
+
 table {
     width: 100%;
     border-collapse: collapse;
 }
+
 th, td {
     padding: 10px;
     text-align: center;
     border: 1px solid #ddd;
 }
+
 th {
     background-color: #f2f2f2;
 }
+
 tr:hover {
     background-color: #f1f1f1;
 }
+
 button {
     background-color: #4CAF50;
     color: white;
@@ -42,19 +56,24 @@ button {
     cursor: pointer;
     border-radius: 4px;
 }
+
 button:hover {
     background-color: #45a049;
 }
+
 tbody tr {
     transition: transform 1s ease;
 }
+
 tbody tr.sort-enter {
     transform: translateX(-100%);
 }
+
 tbody tr.sort-enter-active {
     transform: translateX(0);
     transition: transform 0.5s ease;
 }
+
 .table-wrapper {
     position: relative;
 }
@@ -88,5 +107,7 @@ tbody tr.sort-enter-active {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }

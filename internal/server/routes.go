@@ -70,7 +70,6 @@ func (s *Server) eventsHandler(c echo.Context) error {
 
 			return nil
 		case newData := <-s.newActivitiesChan:
-			fmt.Printf("New activities: %v\n", newData)
 			if newData {
 				fmt.Fprintf(c.Response(), "event: Table\ndata: New data athletes data to fetch\n\n")
 			}

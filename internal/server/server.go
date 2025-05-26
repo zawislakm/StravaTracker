@@ -45,7 +45,7 @@ func (s *Server) getActivities() {
 				log.Println("No new activities found")
 			}
 		}
-		time.Sleep(time.Duration(apiCallTimeout) * time.Second)
+		time.Sleep(time.Duration(apiCallTimeout) * time.Minute)
 	}
 
 }
