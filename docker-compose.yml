@@ -22,6 +22,8 @@ services:
       tags:
         - app-blue:latest
     image: app-blue:latest
+    environment:
+      TZ: "Europe/Warsaw"
     restart: always
     stop_signal: SIGTERM
     stop_grace_period: 30s
