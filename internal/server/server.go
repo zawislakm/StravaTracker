@@ -29,25 +29,28 @@ func (s *Server) getActivities() {
 			log.Printf("Error getting activities from Strava API: %v", err)
 		} else {
 			s.lastUpdate = time.Now()
+			log.Println("Called for activities, new lastUpdate:", s.lastUpdate)
 			newActivities := s.filterNewActivities(activities)
+			newActivitiesLength := len(newActivities)
+			isNewActivities := false
 
-			if len(newActivities) > 0 {
-				if len(newActivities) > 1000 { // TODO, find out why it happens, I guess its error from strava
-					log.Printf("New acctiviteid found, more than 10: %v, something wrong happend, skipping this request data \n", len(newActivities))
-				} else {
-					s.processNewActivities(newActivities)
-					log.Println("New activities found")
-					// TODO send a notification to frontend about new activities
-					s.newActivitiesChan <- true // pass year of activities to reload, maybe reload is not needed
-				}
+			if newActivitiesLength > 100 {
+				// TODO, find out why it happens, I guess its error from strava
+				log.Printf("New acctiviteid found, more than 10: %v, something wrong happend, skipping this request data \n", len(newActivities))
+			} else if newActivitiesLength > 0 {
+				s.processNewActivities(newActivities)
+				isNewActivities = true
+				log.Println("New activities found")
 			} else {
-				s.newActivitiesChan <- false
-				log.Println("No new activities found")
+				log.Println("No activities found")
+			}
+			select {
+			case s.newActivitiesChan <- isNewActivities:
+			default:
 			}
 		}
 		time.Sleep(time.Duration(apiCallTimeout) * time.Minute)
 	}
-
 }
 
 type Server struct {

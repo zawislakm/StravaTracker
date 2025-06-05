@@ -66,7 +66,7 @@ func (s *Server) eventsHandler(c echo.Context) error {
 	for {
 		select {
 		case <-c.Request().Context().Done():
-			fmt.Println("Client connection closed with reason:", c.Request().Context().Err())
+			log.Println("Client connection closed with reason:", c.Request().Context().Err())
 
 			return nil
 		case newData := <-s.newActivitiesChan:
