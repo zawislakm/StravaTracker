@@ -28,6 +28,11 @@ func (s *service) getAthletes() []model.StravaAthlete {
 	if err := cursor.All(context.Background(), &athletes); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := cursor.Close(context.Background()); err != nil {
+		log.Println(fmt.Sprintf("Error closing cursor: %s", err))
+		return nil
+	}
 	return athletes
 }
 
@@ -52,6 +57,10 @@ func (s *service) getAthleteActivities(athlete *model.StravaAthlete, year string
 		log.Fatal(err)
 	}
 
+	if err := cursor.Close(context.Background()); err != nil {
+		log.Println(fmt.Sprintf("Error closing cursor: %s", err))
+		return nil
+	}
 	return activities
 }
 

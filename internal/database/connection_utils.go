@@ -121,7 +121,7 @@ func (s *service) getClientConnection(uri string) error {
 	opts := options.
 		Client().
 		ApplyURI(uri).
-		SetServerAPIOptions(serverAPI).SetMaxPoolSize(20).
+		SetServerAPIOptions(serverAPI).SetMaxPoolSize(10).
 		SetMinPoolSize(2).
 		SetMaxConnIdleTime(defaultTimeout)
 
