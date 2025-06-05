@@ -2,6 +2,7 @@ package server
 
 import (
 	"app/cmd/web/handlers"
+	"net"
 	"net/http"
 
 	"fmt"
@@ -45,7 +46,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	webHandler := handlers.NewHandler(s.db)
 	e.GET("/", echo.WrapHandler(http.HandlerFunc(webHandler.HandleIndex)))
 	e.GET("/table", echo.WrapHandler(http.HandlerFunc(webHandler.HandleTable)))
-	e.GET("/health", echo.WrapHandler(http.HandlerFunc(webHandler.HandleHealth)))
+	e.GET("/health", LocalhostOnly(echo.WrapHandler(http.HandlerFunc(webHandler.HandleHealth))))
 	e.GET("/websocket", s.websocketHandler)
 	e.GET("/events", s.eventsHandler)
 	return e
@@ -115,4 +116,24 @@ func (s *Server) websocketHandler(c echo.Context) error {
 		time.Sleep(time.Second * 2)
 	}
 	return nil
+}
+
+func LocalhostOnly(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ip := c.RealIP()
+
+		// Check if request is from localhost
+		if ip == "127.0.0.1" || ip == "::1" || ip == "localhost" {
+			return next(c)
+		}
+
+		// Docker health checks addr
+		remoteAddr := c.Request().RemoteAddr
+		host, _, _ := net.SplitHostPort(remoteAddr)
+		if host == "127.0.0.1" || host == "::1" || host == "localhost" {
+			return next(c)
+		}
+
+		return c.String(http.StatusForbidden, "Access denied: endpoint is only accessible from localhost")
+	}
 }
